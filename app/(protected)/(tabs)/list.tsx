@@ -1,36 +1,25 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ScrollView, Text, View } from "react-native";
 
 import PostCard from "@/components/list/PostCard";
 import TabSelector from "@/components/list/TabSelector";
-import PageHeader from "@/components/shared/PageHeader";
+import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useItemsActions } from "@/hooks/useItemsActions";
+import { timeAgo } from "@/hooks/useTime";
 
-// Mock data - will be replaced with Firebase data later
-const activePosts = [
-  {
-    id: "1",
-    name: "Blue Hydro Flask",
-    status: "LOST ITEM",
-    location: "Main Library",
-    time: "2h ago",
-    isActive: true,
-  },
-  {
-    id: "2",
-    name: "AirPods Pro Case",
-    status: "FOUND ITEM",
-    location: "Student Union",
-    time: "Yesterday",
-    isActive: true,
-  },
-];
-
-//const returnedPosts = [];
+interface Post {
+  id: string;
+  name: string;
+  posterId: string;
+  posterName: string;
+  status: string;
+  buildingName: string;
+  createdAt: Date;
+}
 
 export default function MyPostsScreen() {
   const params = useLocalSearchParams<{ returnTo?: string | string[] }>();
@@ -40,20 +29,28 @@ export default function MyPostsScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const iconColor = useThemeColor({}, "icon");
   const colorScheme = useColorScheme();
-  const tintColor = useThemeColor({}, "tint");
-  const returnToParam = Array.isArray(params.returnTo)
-    ? params.returnTo[0]
-    : params.returnTo;
-  const backRoute = returnToParam || "/map";
+  const { user } = useAuth();
+  const { fetchItems } = useItemsActions();
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const loadUserPosts = async () => {
+      const items = await fetchItems();
+
+      const myPosts = items.filter((item) => item.posterId === user.uid);
+      setUserPosts(myPosts);
+    };
+
+    loadUserPosts();
+  }, []);
 
   // Filter posts based on selected tab
-  const filteredPosts = selectedTab === "Active" ? activePosts : []; // returnedPosts will be used once we have data];
+  const filteredPosts = selectedTab === "Active" ? userPosts : [];
 
   return (
     <View className="flex-1" style={{ backgroundColor }}>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
-
-      <PageHeader title="My Posts" showBackButton={false} />
 
       <TabSelector selectedTab={selectedTab} onSelectTab={setSelectedTab} />
 
@@ -62,11 +59,14 @@ export default function MyPostsScreen() {
           <PostCard
             key={post.id}
             id={post.id}
-            name={post.name}
+            title={post.name}
             status={post.status}
-            location={post.location}
-            time={post.time}
-            isActive={post.isActive}
+            time={timeAgo(post.createdAt, {
+              upperCase: true,
+              recentLabel: "recently",
+            })}
+            location={post.buildingName || "Unknown Location"}
+            tabActive={selectedTab === "Active"}
           />
         ))}
 
@@ -78,33 +78,6 @@ export default function MyPostsScreen() {
           </View>
         )}
       </ScrollView>
-
-      {/* New Post Button - INLINED */}
-      <TouchableOpacity
-        className="absolute bottom-12 right-8 flex-row items-center px-6 py-4 rounded-full"
-        style={{
-          backgroundColor: tintColor,
-          shadowColor: tintColor,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 8,
-        }}
-        onPress={() =>
-          router.push({
-            pathname: "/report-item",
-            params: { from: "list" },
-          })
-        }
-      >
-        <Ionicons
-          name="add"
-          size={24}
-          color="#fff"
-          style={{ marginRight: 8 }}
-        />
-        <Text className="text-white font-semibold text-base">New Post</Text>
-      </TouchableOpacity>
     </View>
   );
 }

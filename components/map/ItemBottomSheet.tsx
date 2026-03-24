@@ -1,3 +1,4 @@
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { timeAgo } from "@/hooks/useTime";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
@@ -12,6 +13,10 @@ export default function ItemBottomSheet({
   router,
   createdAt,
 }: any) {
+  const backgroundColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, "text");
+  const iconColor = useThemeColor({}, "icon");
+
   return (
     <BottomSheet
       ref={bottomSheetRef}
@@ -19,6 +24,7 @@ export default function ItemBottomSheet({
       index={-1}
       enablePanDownToClose={true}
       backdropComponent={renderBackdrop}
+      backgroundStyle={{ backgroundColor }}
     >
       <BottomSheetView className="flex-1 mx-4 gap-7">
         <View className="flex-row items-center gap-4">
@@ -31,21 +37,32 @@ export default function ItemBottomSheet({
           <View className="flex-1">
             <Text className="text-blue-600 font-semibold">
               FOUND{" "}
-              {timeAgo(selectedItem.createdAt.toDate(), {
+              {timeAgo(selectedItem.createdAt, {
                 upperCase: true,
                 recentLabel: "recently",
               })}
             </Text>
-            <Text className="font-bold text-3xl">{selectedItem.name}</Text>
-            <Text className="text-gray-600">{selectedItem.description}</Text>
+            <Text className="font-bold text-3xl" style={{ color: textColor }}>
+              {selectedItem.name}
+            </Text>
+            <Text className="text-gray-600" style={{ color: textColor }}>
+              {selectedItem.buildingName || "Unknown"}
+            </Text>
           </View>
-          <Ionicons name="bookmark-outline" size={22} color="#6b7280" />
+          <Ionicons name="bookmark-outline" size={22} color={iconColor} />
         </View>
-        <View className="flex-row bg-gray-100 rounded-lg p-5 items-center gap-4">
-          <Ionicons name="person-circle-outline" size={32} color="#6b7280" />
+        <View
+          className="flex-row rounded-lg p-5 items-center gap-4"
+          style={{
+            backgroundColor: backgroundColor === "#fff" ? "#f3f4f6" : "#2a2a2a",
+          }}
+        >
+          <Ionicons name="person-circle-outline" size={32} color={iconColor} />
           <View>
-            <Text className="text-gray-600">Posted by</Text>
-            <Text className="font-semibold">
+            <Text className="text-gray-600" style={{ color: textColor }}>
+              Posted by
+            </Text>
+            <Text className="font-semibold" style={{ color: textColor }}>
               {selectedItem.posterId === currentUser.uid
                 ? "You"
                 : selectedItem.posterName}
@@ -56,7 +73,8 @@ export default function ItemBottomSheet({
         {selectedItem.posterId !== currentUser?.uid &&
           !selectedItem.posterId && (
             <TouchableOpacity
-              className="flex-row bg-blue-500 rounded-2xl p-5 items-center gap-2 justify-center"
+              className="flex-row rounded-2xl p-5 items-center gap-2 justify-center"
+              style={{ backgroundColor: iconColor }}
               onPress={() => {
                 const chatId = [currentUser.uid, selectedItem.posterId]
                   .sort()
@@ -71,8 +89,8 @@ export default function ItemBottomSheet({
                 });
               }}
             >
-              <Ionicons name="chatbox" size={24} color="#fff" />
-              <Text className="text-white font-bold text-lg">
+              <Ionicons name="chatbox" size={24} color={iconColor} />
+              <Text className="font-bold text-lg" style={{ color: textColor }}>
                 Message Finder
               </Text>
             </TouchableOpacity>

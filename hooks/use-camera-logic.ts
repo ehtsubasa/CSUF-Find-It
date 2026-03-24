@@ -1,11 +1,11 @@
-import { useRef, useState } from 'react';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import * as ImagePicker from 'expo-image-picker';
-import { Href, router, useLocalSearchParams } from 'expo-router';
+import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
+import * as ImagePicker from "expo-image-picker";
+import { router, useLocalSearchParams } from "expo-router";
+import { useRef, useState } from "react";
 
 export function useCameraLogic() {
   // State
-  const [facing, setFacing] = useState<CameraType>('back');
+  const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
 
@@ -16,14 +16,11 @@ export function useCameraLogic() {
     returnTo?: string | string[];
   }>();
   const fromParam = Array.isArray(params.from) ? params.from[0] : params.from;
-  const returnToParam = Array.isArray(params.returnTo)
-    ? params.returnTo[0]
-    : params.returnTo;
-  
+
   // Handle photos - can be string (JSON), string array, or undefined
   let existingPhotos: string[] = [];
   if (params.photos) {
-    if (typeof params.photos === 'string') {
+    if (typeof params.photos === "string") {
       try {
         // Try to parse as JSON first
         existingPhotos = JSON.parse(params.photos);
@@ -46,7 +43,7 @@ export function useCameraLogic() {
 
   // Toggle camera facing (front/back)
   const toggleCameraFacing = () => {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
+    setFacing((current) => (current === "back" ? "front" : "back"));
   };
 
   // Take photo with camera
@@ -58,13 +55,13 @@ export function useCameraLogic() {
       if (photo) {
         const updatedPhotos = [...existingPhotos, photo.uri].slice(0, 4);
         router.replace({
-          pathname: '/report-item',
+          pathname: "/report-item",
           params: buildParams(updatedPhotos),
         });
       }
     } catch (error) {
-      console.error('Error taking picture:', error);
-      alert('Failed to take picture. Please try again.');
+      console.error("Error taking picture:", error);
+      alert("Failed to take picture. Please try again.");
     }
   };
 
@@ -72,45 +69,36 @@ export function useCameraLogic() {
   const pickFromGallery = async () => {
     try {
       // Request permissions
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (status !== 'granted') {
-        alert('Sorry, we need gallery permissions to select photos!');
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (status !== "granted") {
+        alert("Sorry, we need gallery permissions to select photos!");
         return;
       }
 
       // Open image picker
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [3, 4],
         quality: 1,
       });
 
       if (!result.canceled && result.assets[0]) {
-        const updatedPhotos = [...existingPhotos, result.assets[0].uri].slice(0, 4);
+        const updatedPhotos = [...existingPhotos, result.assets[0].uri].slice(
+          0,
+          4,
+        );
         router.replace({
-          pathname: '/report-item',
+          pathname: "/report-item",
           params: buildParams(updatedPhotos),
         });
       }
     } catch (error) {
-      console.error('Error picking from gallery:', error);
-      alert('Failed to open gallery. Please try again.');
+      console.error("Error picking from gallery:", error);
+      alert("Failed to open gallery. Please try again.");
     }
-  };
-
-  // Go back to previous screen (without adding new photos)
-  const goBack = () => {
-    if (returnToParam === '/report-item') {
-      router.replace({
-        pathname: '/report-item',
-        params: buildParams(existingPhotos),
-      });
-      return;
-    }
-
-    router.replace((returnToParam || '/map') as Href);
   };
 
   // Computed values
@@ -130,7 +118,6 @@ export function useCameraLogic() {
     toggleCameraFacing,
     takePicture,
     pickFromGallery,
-    goBack,
     requestPermission,
   };
 }

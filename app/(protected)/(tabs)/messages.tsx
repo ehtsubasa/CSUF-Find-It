@@ -15,20 +15,20 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
-type User = {
+interface User {
   uid: string;
   name: string;
   email: string;
   avatarUrl: string;
   lastMessage: string;
   timestamp: Timestamp;
-};
+}
 
 export default function MessagesScreen() {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
+  const iconColor = useThemeColor({}, "icon");
   const currentUser = useAuth()?.user;
   const [chatUsers, setChatUsers] = useState([] as User[]);
 
@@ -64,8 +64,7 @@ export default function MessagesScreen() {
           uid: otherUserId,
           name: userData.name ?? "",
           email: userData.email ?? "",
-          avatarUrl:
-            userData.avatarUrl ?? require("@/assets/images/default-pfp.png"),
+          avatarUrl: userData.avatarUrl ?? "",
           lastMessage: data.lastMessage || "",
           timestamp: data.lastUpdated || Timestamp.now(),
         });
@@ -76,10 +75,7 @@ export default function MessagesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor }}>
-      <Text className="text-2xl font-bold left-2" style={{ color: textColor }}>
-        Messages Screen
-      </Text>
+    <View className="flex-1" style={{ backgroundColor }}>
       <ScrollView className="flex-1 flex-col gap-4">
         {chatUsers.map((chatUsers) => (
           <TouchableOpacity
@@ -106,14 +102,16 @@ export default function MessagesScreen() {
                 style={{ width: 50, height: 50, borderRadius: 25 }}
               />
               <View className="flex-col">
-                <Text className="text-white text-lg">{chatUsers.name}</Text>
-                <Text className="text-gray-300 text-sm">
+                <Text className="text-lg" style={{ color: textColor }}>
+                  {chatUsers.name}
+                </Text>
+                <Text className=" text-sm" style={{ color: textColor }}>
                   {chatUsers.lastMessage}
                 </Text>
               </View>
             </View>
             <View className="text-center justify-center">
-              <Text className="text-white text-sm">
+              <Text className="text-sm" style={{ color: textColor }}>
                 {timeAgo(chatUsers.timestamp.toDate(), {
                   recentLabel: "now",
                   upperCase: false,
@@ -123,6 +121,6 @@ export default function MessagesScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }

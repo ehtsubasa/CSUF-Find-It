@@ -1,3 +1,4 @@
+import CategoryButtons from "@/components/map/CategoryButtons";
 import Header from "@/components/map/Header";
 import ItemBottomSheet from "@/components/map/ItemBottomSheet";
 import MapControls from "@/components/map/MapControl";
@@ -12,25 +13,27 @@ import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import MapView, { Marker } from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-type LostItem = {
+interface LostItem {
   id: string;
   name: string;
-  description: string;
   posterId: string;
   posterName: string;
-  latitude: number;
-  longitude: number;
+  category: string;
+  location: number[];
+  buildingName: string;
   createdAt: Date;
-};
+}
 
 export default function CampusMapScreen() {
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const { mapRef, handleUserLocation, handleInitialLocation } =
+  const { mapRef, handleUserLocation, handleInitialLocation, getBuildingName } =
     useMapLocation();
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState("Electronics");
   const router = useRouter();
+  const inset = useSafeAreaInsets();
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const backgroundColor = useThemeColor({}, "background");
   const [selectedItem, setSelectedItem] = useState<LostItem | null>(null);
@@ -46,24 +49,22 @@ export default function CampusMapScreen() {
   });
   const { user } = useAuth();
 
-  const { fetchItems, getPosterName } = useItemsActions();
+  const { fetchItems } = useItemsActions();
+
+  const filteredItems =
+    selectedCategory === null
+      ? lostItems
+      : lostItems.filter((item) => item.category === selectedCategory);
 
   useEffect(() => {
     Location.requestForegroundPermissionsAsync();
-    fetchItems().then((items) => {
-      const formattedItems = items.map((item: any) => ({
-        id: item.id,
-        name: item.description,
-        description: item.description,
-        posterId: item.posterId,
-        posterName: item.posterName,
-        latitude: item.location[0],
-        longitude: item.location[1],
-        createdAt: item.createdAt,
-      }));
 
-      setLostItems(formattedItems);
-    });
+    const loadItems = async () => {
+      const items = await fetchItems();
+      setLostItems(items);
+    };
+
+    loadItems();
   }, []);
 
   let text = "Waiting...";
@@ -85,8 +86,17 @@ export default function CampusMapScreen() {
   );
 
   return (
-    <View className="flex-1" style={{ backgroundColor }}>
+    <View
+      className="flex-1"
+      style={{ backgroundColor, paddingTop: inset.top - 40 }}
+    >
       <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+
+      <CategoryButtons
+        selectedCategory={selectedCategory}
+        onSelectCategory={setSelectedCategory}
+      />
+
       <View className="flex-1">
         {/* Map View */}
         <MapView
@@ -96,14 +106,17 @@ export default function CampusMapScreen() {
           showsMyLocationButton={false}
           showsUserLocation={true}
           showsCompass={false}
-          provider={undefined}
+          provider="google"
+          showsIndoors={true}
+          showsBuildings={true}
+          mapType="hybrid"
         >
-          {lostItems.map((item) => (
+          {filteredItems.map((item) => (
             <Marker
               key={item.id}
               coordinate={{
-                latitude: item.latitude,
-                longitude: item.longitude,
+                latitude: item.location[0],
+                longitude: item.location[1],
               }}
               onPress={async () => {
                 setSelectedItem(item);

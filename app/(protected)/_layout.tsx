@@ -1,5 +1,7 @@
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useGlobalSearchParams } from "expo-router/build/hooks";
 import { Text, View } from "react-native";
 
@@ -9,15 +11,29 @@ export default function ProtectedLayout() {
     posterAvatar: string;
   }>();
 
+  const backgroundColor = useThemeColor({}, "background");
+  const iconColor = useThemeColor({}, "icon");
+  const textColor = useThemeColor({}, "text");
+
   return (
-    <Stack>
+    <Stack
+      screenOptions={{
+        headerBackButtonDisplayMode: "minimal",
+        headerStyle: {
+          backgroundColor: backgroundColor,
+        },
+        headerTintColor: iconColor,
+        headerTitleStyle: {
+          fontWeight: "bold",
+        },
+      }}
+    >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="chat/[id]"
         options={{
           title: "",
           headerShown: true,
-          headerBackButtonDisplayMode: "minimal",
           headerTitle: () => (
             <View className="flex-row items-center gap-2">
               <Image
@@ -29,10 +45,70 @@ export default function ProtectedLayout() {
                 contentFit="cover"
                 style={{ width: 40, height: 40, borderRadius: 20 }}
               />
-              <Text className="text-white text-lg font-bold">{posterName}</Text>
+              <Text className="text-lg font-bold" style={{ color: textColor }}>
+                {posterName}
+              </Text>
             </View>
           ),
         }}
+      />
+      <Stack.Screen
+        name="report-item"
+        options={{
+          headerShown: true,
+          headerTitle: () => (
+            <View className="flex-row items-center gap-2">
+              <Text className="text-lg font-bold" style={{ color: textColor }}>
+                Report Item
+              </Text>
+            </View>
+          ),
+          headerRight: () => (
+            <View
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                marginLeft: 2,
+                marginTop: 2,
+              }}
+            >
+              <Ionicons
+                name="help-circle-outline"
+                size={32}
+                color={iconColor}
+                onPress={() =>
+                  alert("Need help? Contact support at support@findit.com")
+                }
+              />
+            </View>
+          ),
+          headerLeft: () => (
+            <View
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                marginLeft: 2,
+                marginTop: 2,
+              }}
+            >
+              <Ionicons
+                name="close"
+                size={32}
+                color={iconColor}
+                onPress={() => router.replace("/(protected)/(tabs)/map")}
+              />
+            </View>
+          ),
+        }}
+      />
+      <Stack.Screen
+        name="camera"
+        options={{ title: "Camera", headerShown: true }}
+      />
+
+      <Stack.Screen
+        name="photo-view"
+        options={{ title: "Photo View", headerShown: true }}
       />
     </Stack>
   );

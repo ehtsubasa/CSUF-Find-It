@@ -9,14 +9,17 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { MenuProvider } from "react-native-popup-menu";
 import "../global.css";
 
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
+      <MenuProvider>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+      </MenuProvider>
     </GestureHandlerRootView>
   );
 }

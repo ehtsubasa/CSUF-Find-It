@@ -30,6 +30,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function MessagesDetail() {
   const backgroundColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, "text");
+  const iconColor = useThemeColor({}, "icon");
+  const buttonBackgroundColor = useThemeColor({}, "buttonBackground");
   const [messages, setMessages] = useState<IMessage[]>([] as IMessage[]);
   const inset = useSafeAreaInsets();
   const [text, setText] = useState("");
@@ -131,15 +134,11 @@ export default function MessagesDetail() {
                 alignItems: "center",
                 marginRight: 10,
                 marginVertical: 10,
-                backgroundColor: "#2F80ED",
+                backgroundColor: backgroundColor,
                 borderRadius: 22,
               }}
             >
-              <Ionicons
-                name="send"
-                size={22}
-                color={isDark ? "white" : "black"}
-              />
+              <Ionicons name="send" size={22} color={iconColor} />
             </View>
           </Send>
         )}
@@ -159,15 +158,11 @@ export default function MessagesDetail() {
                   alignItems: "center",
                   marginLeft: 10,
                   borderRadius: 20,
-                  backgroundColor: isDark ? "#1c1c1e" : "#f2f2f2",
+                  backgroundColor: buttonBackgroundColor,
                   marginVertical: 10,
                 }}
               >
-                <Ionicons
-                  name="add-outline"
-                  size={24}
-                  color={isDark ? "white" : "black"}
-                />
+                <Ionicons name="add-outline" size={24} color={iconColor} />
               </View>
             )}
           />
@@ -177,7 +172,7 @@ export default function MessagesDetail() {
             {...props}
             textInputProps={{
               style: {
-                backgroundColor: isDark ? "#1c1c1e" : "#e9edf2",
+                backgroundColor: buttonBackgroundColor,
                 borderRadius: 20,
                 paddingHorizontal: 14,
                 paddingVertical: 8,
@@ -188,7 +183,7 @@ export default function MessagesDetail() {
               },
               onChangeText: setText,
               placeholder: "Type a message...",
-              placeholderTextColor: "#8e8e93",
+              placeholderTextColor: textColor,
             }}
           />
         )}

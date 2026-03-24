@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
@@ -7,21 +7,66 @@ import ItemDetailsForm from "@/components/report-items/ItemDetailsForm";
 import LocationSection from "@/components/report-items/LocationSection";
 import PhotoUpload from "@/components/report-items/PhotoUpload";
 import SubmitButton from "@/components/report-items/SubmitButton";
-import PageHeader from "@/components/shared/PageHeader";
-import ProgressIndicator from "@/components/ui/progress-indicator";
 import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useItemsActions } from "@/hooks/useItemsActions";
+import { useMapLocation } from "@/hooks/useMapLocations";
 
 export default function ReportItemScreen() {
-  const backgroundColor = useThemeColor({}, "background");
-  const colorScheme = useColorScheme();
-  const { submitItem } = useItemsActions();
+  const router = useRouter();
   const { user } = useAuth();
-
+  const { submitItem } = useItemsActions();
+  const { location, handleUserLocation, errorMsg, getBuildingName } =
+    useMapLocation();
+  const colorScheme = useColorScheme();
+  const backgroundColor = useThemeColor({}, "background");
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [itemName, setItemName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [description, setDescription] = useState("");
+  const [buildingName, setBuildingName] = useState("");
+  const [loadingBuilding, setLoadingBuilding] = useState(false);
+  const [isUserEdited, setIsUserEdited] = useState(false);
+  useEffect(() => {
+    handleUserLocation();
+  }, []);
+
+  useEffect(() => {
+    if (location) {
+      setUserLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const fetchBuilding = async () => {
+      if (!userLocation) return;
+
+      setLoadingBuilding(true);
+
+      try {
+        const name = await getBuildingName(
+          userLocation.latitude,
+          userLocation.longitude,
+        );
+        if (name && !isUserEdited) {
+          setBuildingName(name);
+        }
+      } catch (e) {
+        console.log("Failed to get building");
+      }
+
+      setLoadingBuilding(false);
+    };
+
+    fetchBuilding();
+  }, [userLocation]);
 
   // Get params from navigation
   const params = useLocalSearchParams<{
@@ -31,7 +76,6 @@ export default function ReportItemScreen() {
 
   // Parse 'from' param
   const fromParam = Array.isArray(params.from) ? params.from[0] : params.from;
-  const backRoute = fromParam === "list" ? "/list" : "/map";
 
   // Parse 'photos' param - it comes as a JSON string
   let photosParam: string[] = [];
@@ -63,21 +107,31 @@ export default function ReportItemScreen() {
   };
 
   const handleSubmit = () => {
+    if (!userLocation) {
+      alert("Please enable location to report an item");
+      return;
+    }
+
+    if (!itemName.trim()) {
+      alert("Please enter an item name");
+      return;
+    }
+
     submitItem(
-      0, // Placeholder latitude
-      0, // Placeholder longitude
+      userLocation.latitude,
+      userLocation.longitude,
       localPhotos,
-      user?.uid || "posterId-placeholder", // Replace with actual poster ID from auth
-      user?.displayName || "posterName-placeholder", // Replace with actual poster name from auth
+      user?.uid || "posterId-placeholder",
+      user?.displayName || "posterName-placeholder",
+      itemName.trim(),
       description,
       selectedCategory,
+      buildingName || "Unknown Location",
     );
-    // After submission, navigate to a confirmation screen or back to list/map
-  };
 
-  // MODIFY THESE VALUES to change step progression
-  const CURRENT_STEP = 1;
-  const TOTAL_STEPS = 2;
+    alert("Item reported successfully!");
+    router.push("/(protected)/(tabs)/map");
+  };
 
   return (
     <KeyboardAvoidingView
@@ -87,27 +141,20 @@ export default function ReportItemScreen() {
     >
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
 
-      <PageHeader
-        title="Report Item"
-        backTo={backRoute}
-        rightIcon="help-circle"
-        onRightPress={() =>
-          alert("Need help? Contact support at support@findit.com")
-        }
-      />
-
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Progress Indicator - Step 1 of 2 */}
-        <ProgressIndicator
-          currentStep={CURRENT_STEP}
-          totalSteps={TOTAL_STEPS}
-        />
-
         {/* Item Location */}
-        <LocationSection />
+        <LocationSection
+          isLoading={loadingBuilding}
+          buildingName={buildingName}
+          setBuildingName={setBuildingName}
+          onEditPress={() => setBuildingName("")}
+          setIsUserEdited={setIsUserEdited}
+        />
 
         {/* Item Details (Category + Description) */}
         <ItemDetailsForm
+          itemName={itemName}
+          setItemName={setItemName}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
           description={description}
