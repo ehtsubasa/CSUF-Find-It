@@ -50,7 +50,7 @@ export default function TabsLayout() {
           tabBarButton: () => (
             <TouchableOpacity
               activeOpacity={0.9}
-              className="items-center justify-center -mt-8"
+              className="items-center justify-center"
               onPress={() => router.push("/camera")}
             >
               <View

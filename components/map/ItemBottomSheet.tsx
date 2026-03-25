@@ -21,7 +21,7 @@ export default function ItemBottomSheet({
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      snapPoints={["50%"]}
+      snapPoints={["53%"]}
       index={-1}
       enablePanDownToClose={true}
       backdropComponent={renderBackdrop}
