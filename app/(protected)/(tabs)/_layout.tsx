@@ -1,5 +1,7 @@
 import { Colors } from "@/constants/theme";
+import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useConversations } from "@/hooks/useConversations";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, Tabs } from "expo-router";
 import React from "react";
@@ -8,6 +10,14 @@ import { TouchableOpacity, View } from "react-native";
 export default function TabsLayout() {
   const colorScheme = useColorScheme() ?? "light";
   const theme = Colors[colorScheme];
+  const currentUser = useAuth()?.user;
+  const { chatUsers } = useConversations(currentUser);
+
+  // loop through all chats and add up all unread messages
+  const unreadMessagesCount = chatUsers.reduce(
+    (total, user) => total + user.unreadCount,
+    0,
+  );
 
   return (
     <Tabs
@@ -69,6 +79,8 @@ export default function TabsLayout() {
         options={{
           title: "Messages",
           headerBackButtonDisplayMode: "minimal",
+          tabBarBadge:
+            unreadMessagesCount > 0 ? unreadMessagesCount : undefined,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles" size={size} color={color} />
           ),

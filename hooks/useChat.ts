@@ -9,7 +9,7 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  updateDoc,
+  updateDoc
 } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 import { IMessage } from "react-native-gifted-chat";
