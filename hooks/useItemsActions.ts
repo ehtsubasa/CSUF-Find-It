@@ -11,6 +11,7 @@ export function useItemsActions() {
     imgUrl: string[],
     posterId: string,
     posterName: string,
+    posterAvatar: string,
     itemName: string,
     description: string,
     category: string,
@@ -36,6 +37,7 @@ export function useItemsActions() {
         photos: [downloadURL],
         posterId: posterId,
         posterName: posterName,
+        posterAvatar: posterAvatar,
         name: itemName,
         description: description,
         category: category,
@@ -68,7 +70,7 @@ export function useItemsActions() {
           // user info
           posterId: data.posterId ?? "",
           posterName: data.posterName ?? "Unknown",
-
+          posterAvatar: data.posterAvatar ?? "",
           photos: data.photos ?? [],
           category: data.category ?? "Other",
           isActive: data.status === "active",

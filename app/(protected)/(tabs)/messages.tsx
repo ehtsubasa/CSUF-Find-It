@@ -88,7 +88,7 @@ export default function MessagesScreen() {
                   id: chatId,
                   posterName: chatUsers.name,
                   posterId: chatUsers.uid,
-                  posterAvatar: chatUsers.avatarUrl,
+                  posterAvatar: encodeURIComponent(chatUsers.avatarUrl),
                 },
               });
             }}

@@ -16,6 +16,7 @@ export default function ItemBottomSheet({
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const iconColor = useThemeColor({}, "icon");
+  const buttonBackgroundColor = useThemeColor({}, "buttonBackground");
 
   return (
     <BottomSheet
@@ -57,7 +58,10 @@ export default function ItemBottomSheet({
             backgroundColor: backgroundColor === "#fff" ? "#f3f4f6" : "#2a2a2a",
           }}
         >
-          <Ionicons name="person-circle-outline" size={32} color={iconColor} />
+          <Image
+            source={{ uri: selectedItem.posterAvatar }}
+            style={{ width: 40, height: 40, borderRadius: 20 }}
+          />
           <View>
             <Text className="text-gray-600" style={{ color: textColor }}>
               Posted by
@@ -70,11 +74,11 @@ export default function ItemBottomSheet({
           </View>
         </View>
 
-        {selectedItem.posterId !== currentUser?.uid &&
-          !selectedItem.posterId && (
+        {selectedItem.posterId &&
+          selectedItem.posterId !== currentUser?.uid && (
             <TouchableOpacity
               className="flex-row rounded-2xl p-5 items-center gap-2 justify-center"
-              style={{ backgroundColor: iconColor }}
+              style={{ backgroundColor: buttonBackgroundColor }}
               onPress={() => {
                 const chatId = [currentUser.uid, selectedItem.posterId]
                   .sort()
@@ -85,6 +89,8 @@ export default function ItemBottomSheet({
                   params: {
                     id: chatId,
                     otherUserId: selectedItem.posterId,
+                    posterName: selectedItem.posterName,
+                    posterAvatar: encodeURIComponent(selectedItem.posterAvatar),
                   },
                 });
               }}

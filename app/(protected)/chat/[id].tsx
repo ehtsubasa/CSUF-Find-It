@@ -1,27 +1,15 @@
 import { useAuth } from "@/context/AuthContext";
-import { db } from "@/firebaseConfig";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useChat } from "@/hooks/useChat";
 import { Ionicons } from "@expo/vector-icons";
 import { useHeaderHeight } from "@react-navigation/elements";
 import { useLocalSearchParams } from "expo-router";
-import {
-  addDoc,
-  collection,
-  doc,
-  increment,
-  onSnapshot,
-  orderBy,
-  query,
-  serverTimestamp,
-  setDoc,
-} from "firebase/firestore";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 import {
   Bubble,
   Composer,
   GiftedChat,
-  IMessage,
   InputToolbar,
   Send,
   useColorScheme,
@@ -33,7 +21,6 @@ export default function MessagesDetail() {
   const textColor = useThemeColor({}, "text");
   const iconColor = useThemeColor({}, "icon");
   const buttonBackgroundColor = useThemeColor({}, "buttonBackground");
-  const [messages, setMessages] = useState<IMessage[]>([] as IMessage[]);
   const inset = useSafeAreaInsets();
   const [text, setText] = useState("");
   const colorScheme = useColorScheme();
@@ -42,64 +29,7 @@ export default function MessagesDetail() {
   const currentUser = useAuth()?.user;
   const headerHeight = useHeaderHeight();
   const { posterId } = useLocalSearchParams<{ posterId: string }>();
-
-  useEffect(() => {
-    const q = query(
-      collection(db, "conversations", id, "messages"),
-      orderBy("createdAt", "desc"),
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          _id: doc.id,
-          text: data.text,
-          createdAt: data.createdAt?.toDate(),
-          user: {
-            _id: data.senderId,
-          },
-        };
-      });
-
-      setMessages(msgs);
-    });
-
-    return unsubscribe;
-  }, [id]);
-
-  const onSend = useCallback(async (messages: IMessage[] = []) => {
-    const message = messages[0];
-    if (!message || !id || !currentUser) return;
-    try {
-      const messagesRef = collection(db, "conversations", id, "messages");
-      const conversationRef = doc(db, "conversations", id);
-
-      // Write message to subcollection
-      await addDoc(messagesRef, {
-        senderId: currentUser.uid,
-        text: message.text,
-        type: "text",
-        createdAt: serverTimestamp(),
-        isRead: false,
-      });
-
-      // Update parent conversation
-      await setDoc(
-        conversationRef,
-        {
-          participants: [currentUser.uid, posterId],
-          lastMessage: message.text,
-          lastUpdated: serverTimestamp(),
-          lastMessageSenderId: currentUser.uid,
-          unreadCount: increment(1),
-        },
-        { merge: true },
-      );
-    } catch (error) {
-      console.error("Error sending message:", error);
-    }
-  }, []);
+  const { messages, sendMessage } = useChat(id, currentUser, posterId);
 
   return (
     <View
@@ -112,7 +42,7 @@ export default function MessagesDetail() {
       <GiftedChat
         messages={messages}
         text={text}
-        onSend={(messages: any) => onSend(messages)}
+        onSend={(messages: any) => sendMessage(messages[0].text)}
         user={{
           _id: currentUser?.uid || "1",
           name: currentUser?.displayName || "You",

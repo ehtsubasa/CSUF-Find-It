@@ -123,6 +123,7 @@ export default function ReportItemScreen() {
       localPhotos,
       user?.uid || "posterId-placeholder",
       user?.displayName || "posterName-placeholder",
+      user?.photoURL || "posterAvatar-placeholder",
       itemName.trim(),
       description,
       selectedCategory,
