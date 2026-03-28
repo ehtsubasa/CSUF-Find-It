@@ -1,14 +1,28 @@
-import React from 'react';
-import { View, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { Text, View } from "react-native";
+import { TextInput } from "react-native-gesture-handler";
 
-export default function LocationSection() {
-  const textColor = useThemeColor({}, 'text');
-  const iconColor = useThemeColor({}, 'icon');
-  const tintColor = useThemeColor({}, 'tint');
-  const colorScheme = useColorScheme() ?? 'light';
+export default function LocationSection({
+  buildingName,
+  setBuildingName,
+  onEditPress,
+  setIsUserEdited,
+  isLoading,
+}: {
+  buildingName: string;
+  setBuildingName: (name: string) => void;
+  onEditPress: () => void;
+  setIsUserEdited: (isEdited: boolean) => void;
+  isLoading: boolean;
+}) {
+  const textColor = useThemeColor({}, "text");
+  const iconColor = useThemeColor({}, "icon");
+  const tintColor = useThemeColor({}, "tint");
+  const colorScheme = useColorScheme() ?? "light";
+  const [isEditing, setIsEditing] = useState(false);
 
   return (
     <View className="px-6 mb-6">
@@ -16,37 +30,58 @@ export default function LocationSection() {
         Item Location
       </Text>
 
-      <View 
+      <View
         className="flex-row items-center justify-between p-4 rounded-2xl"
-        style={{ backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#f3f4f6' }}
+        style={{
+          backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#f3f4f6",
+        }}
       >
-        {/* Location Icon */}
         <View className="flex-row items-center flex-1">
-          <View 
+          <View
             className="w-12 h-12 rounded-full items-center justify-center mr-3"
-            style={{ backgroundColor: tintColor + '20' }}
+            style={{ backgroundColor: tintColor + "20" }}
           >
             <Ionicons name="location" size={24} color={tintColor} />
           </View>
 
-          {/* Location Text */}
           <View className="flex-1">
-            <Text className="text-base font-medium mb-1" style={{ color: textColor }}>
-              {/* Leave blank - will be filled with actual location later */}
-            </Text>
+            {isEditing ? (
+              <TextInput
+                value={buildingName}
+                onChangeText={(text) => {
+                  setBuildingName(text);
+                  setIsUserEdited(true);
+                }}
+                autoFocus
+                onBlur={() => setIsEditing(false)}
+                placeholder="Enter location"
+                style={{ color: textColor }}
+              />
+            ) : isLoading ? (
+              <Text className="text-base font-medium mb-1 text-gray-400">
+                Finding location...
+              </Text>
+            ) : (
+              <Text
+                onPress={() => setIsEditing(true)}
+                className="text-base font-medium mb-1"
+                style={{ color: textColor }}
+              >
+                {buildingName || "Tap to set location"}
+              </Text>
+            )}
+
             <Text className="text-sm" style={{ color: iconColor }}>
-              Auto-detected location
+              Auto-detected building • Tap to edit if incorrect
             </Text>
           </View>
         </View>
 
-        {/* Checkmark */}
-        <View 
-          className="w-8 h-8 rounded-full items-center justify-center"
-          style={{ backgroundColor: '#10b981' }}
-        >
-          <Ionicons name="checkmark" size={18} color="#fff" />
-        </View>
+        <Ionicons
+          name={isEditing ? "checkmark" : "pencil"}
+          size={20}
+          color={iconColor}
+        />
       </View>
     </View>
   );

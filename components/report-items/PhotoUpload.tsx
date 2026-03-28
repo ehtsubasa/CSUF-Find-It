@@ -1,9 +1,9 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import React, { useEffect, useRef } from "react";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 
 interface PhotoUploadProps {
   photos?: string[];
@@ -11,15 +11,19 @@ interface PhotoUploadProps {
   onRemovePhoto?: (index: number) => void;
 }
 
-export default function PhotoUpload({ photos = [], from, onRemovePhoto }: PhotoUploadProps) {
-  const textColor = useThemeColor({}, 'text');
-  const iconColor = useThemeColor({}, 'icon');
-  const colorScheme = useColorScheme() ?? 'light';
+export default function PhotoUpload({
+  photos = [],
+  from,
+  onRemovePhoto,
+}: PhotoUploadProps) {
+  const textColor = useThemeColor({}, "text");
+  const iconColor = useThemeColor({}, "icon");
+  const colorScheme = useColorScheme() ?? "light";
   const scrollViewRef = useRef<ScrollView>(null);
   const prevPhotosLength = useRef(photos.length);
 
-  const placeholderBgColor = colorScheme === 'dark' ? '#1a1a1a' : '#f9fafb';
-  const borderColor = colorScheme === 'dark' ? '#2a2a2a' : '#e5e7eb';
+  const placeholderBgColor = colorScheme === "dark" ? "#1a1a1a" : "#f9fafb";
+  const borderColor = colorScheme === "dark" ? "#2a2a2a" : "#e5e7eb";
 
   // Scroll to the end ONLY when adding photos (not when removing)
   useEffect(() => {
@@ -35,31 +39,33 @@ export default function PhotoUpload({ photos = [], from, onRemovePhoto }: PhotoU
     if (onRemovePhoto) {
       onRemovePhoto(indexToRemove);
     } else {
-      const updatedPhotos = photos.filter((_, index) => index !== indexToRemove);
-      
+      const updatedPhotos = photos.filter(
+        (_, index) => index !== indexToRemove,
+      );
+
       // Navigate back with updated photos array
       router.replace({
-        pathname: '/report-item',
-        params: from 
-          ? { from, photos: JSON.stringify(updatedPhotos) } 
+        pathname: "/report-item",
+        params: from
+          ? { from, photos: JSON.stringify(updatedPhotos) }
           : { photos: JSON.stringify(updatedPhotos) },
       });
     }
   };
 
   const handleAddPhoto = () => {
-    router.push({ 
-      pathname: '/camera', 
+    router.push({
+      pathname: "/camera",
       params: from
         ? {
             from,
             photos: JSON.stringify(photos),
-            returnTo: '/report-item',
+            returnTo: "/report-item",
           }
         : {
             photos: JSON.stringify(photos),
-            returnTo: '/report-item',
-          }
+            returnTo: "/report-item",
+          },
     });
   };
 
@@ -72,7 +78,7 @@ export default function PhotoUpload({ photos = [], from, onRemovePhoto }: PhotoU
         backgroundColor: placeholderBgColor,
         borderWidth: 2,
         borderColor: borderColor,
-        borderStyle: 'dashed',
+        borderStyle: "dashed",
       }}
       onPress={handleAddPhoto}
     >
@@ -98,28 +104,41 @@ export default function PhotoUpload({ photos = [], from, onRemovePhoto }: PhotoU
 
       {/* Horizontal Scrollable Layout - Only when there are photos */}
       {photos.length > 0 ? (
-        <ScrollView 
+        <ScrollView
           ref={scrollViewRef}
-          horizontal 
+          horizontal
           showsHorizontalScrollIndicator={false}
           className="flex-row"
-          contentContainerStyle={{ paddingRight: 16, paddingTop: 8, paddingBottom: 8 }}
+          contentContainerStyle={{
+            paddingRight: 16,
+            paddingTop: 8,
+            paddingBottom: 8,
+          }}
           scrollEventThrottle={16}
           decelerationRate="fast"
         >
           {/* Show existing photos */}
           {photos.map((photoUri, index) => (
             <View key={index} className="relative mr-4">
-              <Image
-                source={{ uri: photoUri }}
-                className="w-40 h-40 rounded-xl"
-                style={{ resizeMode: 'cover' }}
-              />
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/photo-view",
+                    params: { uri: photoUri },
+                  })
+                }
+              >
+                <Image
+                  source={{ uri: photoUri }}
+                  className="w-40 h-40 rounded-xl"
+                  style={{ resizeMode: "cover" }}
+                />
+              </TouchableOpacity>
               {/* Remove Photo Button */}
               <TouchableOpacity
                 className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-red-500 items-center justify-center"
                 style={{
-                  shadowColor: '#000',
+                  shadowColor: "#000",
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.2,
                   shadowRadius: 3,
@@ -144,12 +163,11 @@ export default function PhotoUpload({ photos = [], from, onRemovePhoto }: PhotoU
 
       {/* Help Text */}
       <Text className="text-xs mt-2" style={{ color: iconColor }}>
-        {photos.length === 0 
-          ? 'Add up to 4 clear photos to help identify the item'
+        {photos.length === 0
+          ? "Add up to 4 clear photos to help identify the item"
           : photos.length === 4
-          ? 'Maximum 4 photos added'
-          : `You can add ${4 - photos.length} more photo${4 - photos.length === 1 ? '' : 's'}`
-        }
+            ? "Maximum 4 photos added"
+            : `You can add ${4 - photos.length} more photo${4 - photos.length === 1 ? "" : "s"}`}
       </Text>
     </View>
   );

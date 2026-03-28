@@ -1,28 +1,40 @@
+import { Colors } from "@/constants/theme";
+import { useAuth } from "@/context/AuthContext";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useConversations } from "@/hooks/useConversations";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { router, Tabs, useSegments } from "expo-router";
+import { router, Tabs } from "expo-router";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
 
 export default function TabsLayout() {
-  const segments = useSegments();
-  const currentTab = segments[segments.length - 1];
-  const returnTo =
-    typeof currentTab === "string" && currentTab !== "camera"
-      ? `/${currentTab}`
-      : "/map";
-  const reportFrom =
-    currentTab === "list" || currentTab === "map" ? currentTab : undefined;
+  const colorScheme = useColorScheme() ?? "light";
+  const theme = Colors[colorScheme];
+  const currentUser = useAuth()?.user;
+  const { chatUsers } = useConversations(currentUser);
+
+  // loop through all chats and add up all unread messages
+  const unreadMessagesCount = chatUsers.reduce(
+    (total, user) => total + user.unreadCount,
+    0,
+  );
 
   return (
     <Tabs
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerStyle: { backgroundColor: theme.background },
+        headerTintColor: theme.text,
+        tabBarActiveTintColor: theme.backgroundIcon,
+        tabBarInactiveTintColor: theme.tabIconDefault,
+        tabBarStyle: { backgroundColor: theme.background },
       }}
     >
       <Tabs.Screen
         name="map"
         options={{
           title: "Map",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="map-outline" size={size} color={color} />
           ),
@@ -32,33 +44,30 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="list"
         options={{
-          title: "List",
+          title: "My Posts",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="list-outline" size={size} color={color} />
           ),
         }}
       />
 
+      {/* Dummy Camera Tab */}
       <Tabs.Screen
-        name="camera"
+        name="camera-trigger"
         options={{
           title: "",
           tabBarShowLabel: false,
           tabBarButton: () => (
             <TouchableOpacity
               activeOpacity={0.9}
-              className="items-center justify-center -mt-8"
-              onPress={() =>
-                router.push({
-                  pathname: "/camera",
-                  params: reportFrom
-                    ? { from: reportFrom, returnTo }
-                    : { returnTo },
-                })
-              }
+              className="items-center justify-center"
+              onPress={() => router.push("/camera")}
             >
-              <View className="h-16 w-16 rounded-full bg-blue-500 items-center justify-center">
-                <Ionicons name="camera" size={28} color="white" />
+              <View
+                className="h-16 w-16 rounded-full items-center justify-center"
+                style={{ backgroundColor: theme.backgroundIcon }}
+              >
+                <Ionicons name="camera" size={28} color="#ffff" />
               </View>
             </TouchableOpacity>
           ),
@@ -69,6 +78,9 @@ export default function TabsLayout() {
         name="messages"
         options={{
           title: "Messages",
+          headerBackButtonDisplayMode: "minimal",
+          tabBarBadge:
+            unreadMessagesCount > 0 ? unreadMessagesCount : undefined,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubbles" size={size} color={color} />
           ),

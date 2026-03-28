@@ -45,8 +45,6 @@ const slides = [
   },
 ];
 
-// ─── Main Component ───────────────────────────────────────────────────────────
-
 export default function OnboardingScreen() {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);

@@ -51,11 +51,34 @@ export function useMapLocation() {
     }
   };
 
+  const getBuildingName = async (lat: number, lng: number) => {
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_KEY}`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.results) return null;
+
+    const result = data.results.find(
+      (r: any) =>
+        r.types.includes("premise") ||
+        r.types.includes("establishment") ||
+        r.types.includes("point_of_interest"),
+    );
+
+    if (result) return result.formatted_address;
+    if (result.types.includes("plus_code")) return null;
+
+    // fallback
+    return data.results[0]?.formatted_address || null;
+  };
+
   return {
     mapRef,
     errorMsg,
     location,
     handleUserLocation,
     handleInitialLocation,
+    getBuildingName,
   };
 }
