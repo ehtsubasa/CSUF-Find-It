@@ -1,8 +1,10 @@
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useItemsActions } from "@/hooks/useItemsActions";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import {
   Menu,
   MenuOption,
@@ -17,18 +19,23 @@ interface PostCardProps {
   location: string;
   time: string;
   tabActive: boolean;
+  photo: string;
 }
 
 export default function PostCard({
+  id,
   title,
   status,
   location,
   time,
   tabActive,
+  photo,
 }: PostCardProps) {
   const textColor = useThemeColor({}, "text");
   const iconColor = useThemeColor({}, "icon");
   const colorScheme = useColorScheme() ?? "light";
+  const backgroundColor = useThemeColor({}, "background");
+  const { deletePost } = useItemsActions();
 
   return (
     <View
@@ -43,14 +50,12 @@ export default function PostCard({
       }}
     >
       {/* Placeholder Image */}
-      <View
-        className="w-20 h-20 rounded-xl items-center justify-center mr-4"
-        style={{
-          backgroundColor: colorScheme === "dark" ? "#2a2a2a" : "#e5e7eb",
-        }}
-      >
-        <Ionicons name="image-outline" size={32} color={iconColor} />
-      </View>
+      <Image
+        source={{ uri: photo }}
+        contentFit="cover"
+        transition={1000}
+        style={{ width: 64, height: 64, borderRadius: 8, marginRight: 12 }}
+      />
 
       {/* Item Info */}
       <View className="flex-1">
@@ -74,7 +79,7 @@ export default function PostCard({
           </MenuTrigger>
           <MenuOptions
             optionsContainerStyle={{
-              backgroundColor: "#fff",
+              backgroundColor: backgroundColor,
               borderRadius: 12,
               paddingVertical: 8,
               width: 180,
@@ -82,20 +87,26 @@ export default function PostCard({
             }}
           >
             <MenuOption>
-              <View className="flex-row items-center px-4 py-3 gap-3">
+              <Pressable
+                className="flex-row items-center px-4 py-3 gap-3"
+                onPress={() => console.log("Edit post")}
+              >
                 <Ionicons name="pencil" size={18} color={iconColor} />
                 <Text style={{ color: iconColor, fontSize: 15 }}>
                   Edit Post
                 </Text>
-              </View>
+              </Pressable>
             </MenuOption>
             <MenuOption>
-              <View className="flex-row items-center px-4 py-3 gap-3">
+              <Pressable
+                className="flex-row items-center px-4 py-3 gap-3"
+                onPress={() => console.log("Mark as Resolved")}
+              >
                 <Ionicons name="checkmark" size={18} color={iconColor} />
                 <Text style={{ color: iconColor, fontSize: 15 }}>
                   Mark as Resolved
                 </Text>
-              </View>
+              </Pressable>
             </MenuOption>
             <MenuOption>
               <View
@@ -108,12 +119,15 @@ export default function PostCard({
               />
             </MenuOption>
             <MenuOption>
-              <View className="flex-row items-center px-4 py-3 gap-3">
+              <Pressable
+                className="flex-row items-center px-4 py-3 gap-3"
+                onPress={() => deletePost(id)}
+              >
                 <Ionicons name="trash" size={18} color={iconColor} />
                 <Text style={{ color: iconColor, fontSize: 15 }}>
                   Delete Post
                 </Text>
-              </View>
+              </Pressable>
             </MenuOption>
           </MenuOptions>
         </Menu>

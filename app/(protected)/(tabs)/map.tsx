@@ -49,7 +49,7 @@ export default function CampusMapScreen() {
   });
   const { user } = useAuth();
 
-  const { fetchItems } = useItemsActions();
+  const { getAllItems } = useItemsActions();
 
   const filteredItems =
     selectedCategory === null
@@ -60,7 +60,7 @@ export default function CampusMapScreen() {
     Location.requestForegroundPermissionsAsync();
 
     const loadItems = async () => {
-      const items = await fetchItems();
+      const items = await getAllItems();
       setLostItems(items);
     };
 

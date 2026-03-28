@@ -1,10 +1,16 @@
 import { db } from "@/firebaseConfig";
 import * as Location from "expo-location";
-import { addDoc, collection, getDocs } from "firebase/firestore";
-import { useMapLocation } from "./useMapLocations";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 export function useItemsActions() {
-  const { location, getBuildingName } = useMapLocation();
   const submitItem = async (
     lat: number,
     lng: number,
@@ -51,8 +57,8 @@ export function useItemsActions() {
     }
   };
 
-  // fetch all items from firestore
-  const fetchItems = async () => {
+  // fetch all items from firestore for map display
+  const getAllItems = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "reportedItems"));
       const items = querySnapshot.docs.map((doc) => {
@@ -83,5 +89,48 @@ export function useItemsActions() {
     }
   };
 
-  return { submitItem, fetchItems };
+  const getUserItems = async (userId: string) => {
+    try {
+      const querySnapshot = query(
+        collection(db, "reportedItems"),
+        where("posterId", "==", userId),
+      );
+      const items = (await getDocs(querySnapshot)).docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name ?? data.description ?? "No title",
+          status: data.status ?? "active",
+          location: data.location ?? [0, 0],
+          buildingName: data.buildingName ?? "Unknown",
+          createdAt: data.createdAt?.toDate
+            ? data.createdAt.toDate()
+            : new Date(),
+
+          posterId: data.posterId ?? "",
+          posterName: data.posterName ?? "Unknown",
+          posterAvatar: data.posterAvatar ?? "",
+          photos: data.photos ?? [],
+          category: data.category ?? "Other",
+          isActive: data.status === "active",
+        };
+      });
+      return items;
+    } catch (e: any) {
+      console.error("Error fetching user items: ", e);
+      throw e;
+    }
+  };
+
+  const deletePost = async (id: string) => {
+    try {
+      const docRef = doc(db, "reportedItems", id);
+      await deleteDoc(docRef);
+      console.log("Document with ID ", id, " deleted successfully");
+    } catch (e) {
+      console.error("Error deleting document: ", e);
+    }
+  };
+
+  return { submitItem, getAllItems, getUserItems, deletePost };
 }

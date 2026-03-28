@@ -30,7 +30,7 @@ export default function ItemBottomSheet({
       <BottomSheetView className="flex-1 mx-4 gap-7">
         <View className="flex-row items-center gap-4">
           <Image
-            source="https://picsum.photos/seed/696/3000/2000"
+            source={{ uri: selectedItem.photos[0] }}
             contentFit="cover"
             transition={1000}
             style={{ width: 64, height: 64, borderRadius: 8 }}
@@ -43,7 +43,10 @@ export default function ItemBottomSheet({
                 recentLabel: "recently",
               })}
             </Text>
-            <Text className="font-bold text-3xl" style={{ color: textColor }}>
+            <Text
+              className="font-extrabold text-2xl"
+              style={{ color: textColor }}
+            >
               {selectedItem.name}
             </Text>
             <Text className="text-gray-600" style={{ color: textColor }}>
@@ -88,7 +91,7 @@ export default function ItemBottomSheet({
                   pathname: "/chat/[id]",
                   params: {
                     id: chatId,
-                    otherUserId: selectedItem.posterId,
+                    posterId: selectedItem.posterId,
                     posterName: selectedItem.posterName,
                     posterAvatar: encodeURIComponent(selectedItem.posterAvatar),
                   },

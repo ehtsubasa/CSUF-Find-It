@@ -9,9 +9,9 @@ import {
   query,
   serverTimestamp,
   setDoc,
-  updateDoc
 } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
+import { Alert } from "react-native";
 import { IMessage } from "react-native-gifted-chat";
 
 const DEFAULT_PFP =
@@ -39,7 +39,7 @@ export function useChat(
         return {
           _id: doc.id,
           text: data.text,
-          createdAt: data.createdAt?.toDate(),
+          createdAt: data.createdAt?.toDate() || new Date(),
           user: {
             _id: data.senderId,
             name: data.senderName || "Unknown",
@@ -57,18 +57,28 @@ export function useChat(
   // mark messages as read
   useEffect(() => {
     if (!currentUser || !conversationId) return;
+
     // reference to the conversation document
     const conversationRef = doc(db, "conversations", conversationId);
     // update unread count for current user to 0
-    updateDoc(conversationRef, {
-      [`unreadCounts.${currentUser.uid}`]: 0,
-    });
+    setDoc(
+      conversationRef,
+      {
+        unreadCounts: {
+          [currentUser.uid]: 0,
+        },
+      },
+      { merge: true },
+    ).catch((error) => console.error("Error marking messages as read:", error));
   }, [currentUser, conversationId]);
 
   // send message
   const sendMessage = useCallback(
     async (messageText: string) => {
-      if (!currentUser || !conversationId) return;
+      if (!currentUser || !conversationId || !posterId) {
+        Alert.alert("Error", "Missing user or conversation information");
+        return;
+      }
 
       const messagesRef = collection(
         db,
@@ -85,7 +95,7 @@ export function useChat(
         text: messageText,
         type: "text",
         createdAt: serverTimestamp(),
-        isRead: false,
+        // imageUri: imageUri,
       };
 
       await addDoc(messagesRef, messagePayload);
@@ -100,15 +110,23 @@ export function useChat(
       );
 
       // update last message, timestamp, and increment unread count for the other user
-      await updateDoc(conversationRef, {
-        lastMessage: messageText,
-        lastUpdated: serverTimestamp(),
-        lastMessageSenderId: currentUser.uid,
-        [`unreadCounts.${posterId}`]: increment(1),
-      });
+      await setDoc(
+        conversationRef,
+        {
+          lastMessage: messageText,
+          lastUpdated: serverTimestamp(),
+          lastMessageSenderId: currentUser.uid,
+          unreadCounts: {
+            [posterId]: increment(1),
+          },
+        },
+        { merge: true },
+      );
     },
     [currentUser, conversationId, posterId],
   );
+
+  const uploadImage = async (image: []) => {};
 
   return { messages, sendMessage };
 }

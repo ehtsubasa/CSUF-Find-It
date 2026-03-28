@@ -19,6 +19,7 @@ interface Post {
   status: string;
   buildingName: string;
   createdAt: Date;
+  photos: string[];
 }
 
 export default function MyPostsScreen() {
@@ -30,16 +31,14 @@ export default function MyPostsScreen() {
   const iconColor = useThemeColor({}, "icon");
   const colorScheme = useColorScheme();
   const { user } = useAuth();
-  const { fetchItems } = useItemsActions();
+  const { getUserItems } = useItemsActions();
   const [userPosts, setUserPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     if (!user) return;
     const loadUserPosts = async () => {
-      const items = await fetchItems();
-
-      const myPosts = items.filter((item) => item.posterId === user.uid);
-      setUserPosts(myPosts);
+      const items = await getUserItems(user.uid);
+      setUserPosts(items);
     };
 
     loadUserPosts();
@@ -61,6 +60,7 @@ export default function MyPostsScreen() {
             id={post.id}
             title={post.name}
             status={post.status}
+            photo={post.photos[0]}
             time={timeAgo(post.createdAt, {
               upperCase: true,
               recentLabel: "recently",

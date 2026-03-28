@@ -12,6 +12,7 @@ export default function Header({ searchQuery, onSearchChange }: HeaderProps) {
   const textColor = useThemeColor({}, "text");
   const iconColor = useThemeColor({}, "icon");
   const backgroundColor = useThemeColor({}, "background");
+  const buttonBackgroundColor = useThemeColor({}, "buttonBackground");
   return (
     <View className="px-4 pt-12 pb-4 border-b" style={{ backgroundColor }}>
       {/* Top Row */}
@@ -37,7 +38,12 @@ export default function Header({ searchQuery, onSearchChange }: HeaderProps) {
       </View>
 
       {/* Search Bar */}
-      <View className="flex-row items-center rounded-lg px-3 py-2 bg-gray-100">
+      <View
+        className="flex-row items-center rounded-lg px-3 py-2"
+        style={{
+          backgroundColor: buttonBackgroundColor,
+        }}
+      >
         <Ionicons name="search" size={20} color={iconColor} />
 
         <TextInput
@@ -46,7 +52,7 @@ export default function Header({ searchQuery, onSearchChange }: HeaderProps) {
           onChangeText={onSearchChange}
           className="flex-1 ml-2"
           style={{ color: textColor }}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={textColor}
         />
       </View>
     </View>
