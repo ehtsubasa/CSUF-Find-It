@@ -3,6 +3,7 @@ import {
   addDoc,
   collection,
   doc,
+  getDoc,
   increment,
   onSnapshot,
   orderBy,
@@ -13,6 +14,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { IMessage } from "react-native-gifted-chat";
+import { useItemsActions } from "./useItemsActions";
 
 const DEFAULT_PFP =
   "https://firebasestorage.googleapis.com/v0/b/titanfind-806b8.firebasestorage.app/o/avatars%2FDEFAULT_PFP.png?alt=media&token=2c4ed3fe-bf09-4ee9-a1f6-0684e7ef1d03";
@@ -24,6 +26,7 @@ export function useChat(
   posterId: string,
 ) {
   const [messages, setMessages] = useState<IMessage[]>([]);
+  const { uploadImage } = useItemsActions();
 
   // listen messages
   useEffect(() => {
@@ -45,6 +48,9 @@ export function useChat(
             name: data.senderName || "Unknown",
             avatar: data.senderAvatar || DEFAULT_PFP,
           },
+          item: data.item || null,
+          type: data.type || "text",
+          image: data.image || null,
         };
       });
 
@@ -56,25 +62,32 @@ export function useChat(
 
   // mark messages as read
   useEffect(() => {
-    if (!currentUser || !conversationId) return;
+    const markAsRead = async () => {
+      if (!currentUser || !conversationId) return;
 
-    // reference to the conversation document
-    const conversationRef = doc(db, "conversations", conversationId);
-    // update unread count for current user to 0
-    setDoc(
-      conversationRef,
-      {
-        unreadCounts: {
-          [currentUser.uid]: 0,
+      const conversationRef = doc(db, "conversations", conversationId);
+      const snap = await getDoc(conversationRef);
+
+      // if conversation doesn't exist, no need to mark as read
+      if (!snap.exists()) return;
+
+      await setDoc(
+        conversationRef,
+        {
+          unreadCounts: {
+            [currentUser.uid]: 0,
+          },
         },
-      },
-      { merge: true },
-    ).catch((error) => console.error("Error marking messages as read:", error));
+        { merge: true },
+      );
+    };
+
+    markAsRead();
   }, [currentUser, conversationId]);
 
   // send message
   const sendMessage = useCallback(
-    async (messageText: string) => {
+    async (messageText: string, item?: any, imageUri?: string[]) => {
       if (!currentUser || !conversationId || !posterId) {
         Alert.alert("Error", "Missing user or conversation information");
         return;
@@ -87,15 +100,21 @@ export function useChat(
         "messages",
       );
       const conversationRef = doc(db, "conversations", conversationId);
+      const uploadedPhotoUrls = await uploadImage(
+        imageUri || [],
+        posterId,
+        "conversations",
+      );
 
       const messagePayload = {
         senderId: currentUser.uid,
         senderName: currentUser.displayName || "Unknown",
         senderAvatar: currentUser.photoURL || DEFAULT_PFP,
         text: messageText,
-        type: "text",
+        type: imageUri && imageUri.length > 0 ? "image" : "text", // if there are images, set type to "image"
+        item: item || null,
+        image: uploadedPhotoUrls[0] || null,
         createdAt: serverTimestamp(),
-        // imageUri: imageUri,
       };
 
       await addDoc(messagesRef, messagePayload);
@@ -125,8 +144,6 @@ export function useChat(
     },
     [currentUser, conversationId, posterId],
   );
-
-  const uploadImage = async (image: []) => {};
 
   return { messages, sendMessage };
 }

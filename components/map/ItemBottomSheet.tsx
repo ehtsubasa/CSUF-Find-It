@@ -1,8 +1,10 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useItemsActions } from "@/hooks/useItemsActions";
 import { timeAgo } from "@/hooks/useTime";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
+import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
 export default function ItemBottomSheet({
@@ -11,12 +13,18 @@ export default function ItemBottomSheet({
   selectedItem,
   currentUser,
   router,
-  createdAt,
+  isSaved,
 }: any) {
   const backgroundColor = useThemeColor({}, "background");
   const textColor = useThemeColor({}, "text");
   const iconColor = useThemeColor({}, "icon");
   const buttonBackgroundColor = useThemeColor({}, "buttonBackground");
+  const [saved, setSaved] = useState(isSaved);
+  const { toggleBookmark } = useItemsActions();
+
+  useEffect(() => {
+    setSaved(isSaved);
+  }, [isSaved]);
 
   return (
     <BottomSheet
@@ -53,7 +61,20 @@ export default function ItemBottomSheet({
               {selectedItem.buildingName || "Unknown"}
             </Text>
           </View>
-          <Ionicons name="bookmark-outline" size={22} color={iconColor} />
+          {selectedItem.posterId !== currentUser.uid && (
+            <TouchableOpacity
+              onPress={() => {
+                toggleBookmark(currentUser.uid, selectedItem.id, saved);
+                setSaved(!saved);
+              }}
+            >
+              {saved ? (
+                <Ionicons name="bookmark" size={24} color={iconColor} />
+              ) : (
+                <Ionicons name="bookmark-outline" size={24} color={iconColor} />
+              )}
+            </TouchableOpacity>
+          )}
         </View>
         <View
           className="flex-row rounded-lg p-5 items-center gap-4"
@@ -91,6 +112,17 @@ export default function ItemBottomSheet({
                   pathname: "/chat/[id]",
                   params: {
                     id: chatId,
+                    selectedItem: selectedItem.name,
+                    selectedItemId: selectedItem.id,
+                    selectedItemPhoto: encodeURIComponent(
+                      selectedItem.photos[0],
+                    ),
+                    selectedItemStatus: selectedItem.status,
+                    selectedItemCreatedAt: timeAgo(selectedItem.createdAt, {
+                      upperCase: true,
+                      recentLabel: "recently",
+                    }),
+                    selectedItemLocation: selectedItem.buildingName,
                     posterId: selectedItem.posterId,
                     posterName: selectedItem.posterName,
                     posterAvatar: encodeURIComponent(selectedItem.posterAvatar),

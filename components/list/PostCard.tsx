@@ -4,7 +4,7 @@ import { useItemsActions } from "@/hooks/useItemsActions";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 import {
   Menu,
   MenuOption,
@@ -14,22 +14,25 @@ import {
 
 interface PostCardProps {
   id: string;
+  posterId: string;
   title: string;
   status: string;
   location: string;
   time: string;
   tabActive: boolean;
   photo: string;
+  onMarkAsReturned?: (postId: string, posterId: string) => void;
 }
 
 export default function PostCard({
   id,
+  posterId,
   title,
   status,
   location,
   time,
-  tabActive,
   photo,
+  onMarkAsReturned,
 }: PostCardProps) {
   const textColor = useThemeColor({}, "text");
   const iconColor = useThemeColor({}, "icon");
@@ -72,65 +75,66 @@ export default function PostCard({
 
       {/* Active Indicator & Menu */}
       <View className="items-center gap-2">
-        {tabActive && <View className="w-3 h-3 rounded-full bg-green-500" />}
-        <Menu>
-          <MenuTrigger>
-            <Ionicons name="ellipsis-vertical" size={20} color={iconColor} />
-          </MenuTrigger>
-          <MenuOptions
-            optionsContainerStyle={{
-              backgroundColor: backgroundColor,
-              borderRadius: 12,
-              paddingVertical: 8,
-              width: 180,
-              marginLeft: -20,
-            }}
-          >
-            <MenuOption>
-              <Pressable
-                className="flex-row items-center px-4 py-3 gap-3"
-                onPress={() => console.log("Edit post")}
-              >
-                <Ionicons name="pencil" size={18} color={iconColor} />
-                <Text style={{ color: iconColor, fontSize: 15 }}>
-                  Edit Post
-                </Text>
-              </Pressable>
-            </MenuOption>
-            <MenuOption>
-              <Pressable
-                className="flex-row items-center px-4 py-3 gap-3"
-                onPress={() => console.log("Mark as Resolved")}
-              >
-                <Ionicons name="checkmark" size={18} color={iconColor} />
-                <Text style={{ color: iconColor, fontSize: 15 }}>
-                  Mark as Resolved
-                </Text>
-              </Pressable>
-            </MenuOption>
-            <MenuOption>
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: "#374151",
-                  marginVertical: 6,
-                  marginHorizontal: 12,
-                }}
-              />
-            </MenuOption>
-            <MenuOption>
-              <Pressable
-                className="flex-row items-center px-4 py-3 gap-3"
-                onPress={() => deletePost(id)}
-              >
-                <Ionicons name="trash" size={18} color={iconColor} />
-                <Text style={{ color: iconColor, fontSize: 15 }}>
-                  Delete Post
-                </Text>
-              </Pressable>
-            </MenuOption>
-          </MenuOptions>
-        </Menu>
+        {status === "active" && (
+          <Menu>
+            <MenuTrigger>
+              <Ionicons name="ellipsis-vertical" size={20} color={iconColor} />
+            </MenuTrigger>
+            <MenuOptions
+              optionsContainerStyle={{
+                backgroundColor: backgroundColor,
+                borderRadius: 12,
+                paddingVertical: 8,
+                width: 180,
+                marginLeft: -20,
+              }}
+            >
+              <MenuOption>
+                <TouchableOpacity
+                  className="flex-row items-center px-4 py-3 gap-3"
+                  onPress={() => console.log("Edit post")}
+                >
+                  <Ionicons name="pencil" size={18} color={iconColor} />
+                  <Text style={{ color: iconColor, fontSize: 15 }}>
+                    Edit Post
+                  </Text>
+                </TouchableOpacity>
+              </MenuOption>
+              <MenuOption>
+                <TouchableOpacity
+                  className="flex-row items-center px-4 py-3 gap-3"
+                  onPress={() => onMarkAsReturned?.(id, posterId)}
+                >
+                  <Ionicons name="checkmark" size={18} color={iconColor} />
+                  <Text style={{ color: iconColor, fontSize: 15 }}>
+                    Mark as Returned
+                  </Text>
+                </TouchableOpacity>
+              </MenuOption>
+              <MenuOption>
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: "#374151",
+                    marginVertical: 6,
+                    marginHorizontal: 12,
+                  }}
+                />
+              </MenuOption>
+              <MenuOption>
+                <TouchableOpacity
+                  className="flex-row items-center px-4 py-3 gap-3"
+                  onPress={() => deletePost(id, posterId)}
+                >
+                  <Ionicons name="trash" size={18} color={iconColor} />
+                  <Text style={{ color: iconColor, fontSize: 15 }}>
+                    Delete Post
+                  </Text>
+                </TouchableOpacity>
+              </MenuOption>
+            </MenuOptions>
+          </Menu>
+        )}
       </View>
     </View>
   );

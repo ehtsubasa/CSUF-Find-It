@@ -1,4 +1,3 @@
-import { useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -23,7 +22,6 @@ interface Post {
 }
 
 export default function MyPostsScreen() {
-  const params = useLocalSearchParams<{ returnTo?: string | string[] }>();
   const [selectedTab, setSelectedTab] = useState<"Active" | "Returned">(
     "Active",
   );
@@ -31,7 +29,7 @@ export default function MyPostsScreen() {
   const iconColor = useThemeColor({}, "icon");
   const colorScheme = useColorScheme();
   const { user } = useAuth();
-  const { getUserItems } = useItemsActions();
+  const { getUserItems, markAsReturned } = useItemsActions();
   const [userPosts, setUserPosts] = useState<Post[]>([]);
 
   useEffect(() => {
@@ -39,13 +37,27 @@ export default function MyPostsScreen() {
     const loadUserPosts = async () => {
       const items = await getUserItems(user.uid);
       setUserPosts(items);
+      console.log("Loading user posts with params:", items);
     };
-
     loadUserPosts();
   }, []);
 
+  const handleMarkAsReturned = async (postId: string, posterId: string) => {
+    await markAsReturned(postId, posterId);
+    // Update local state to reflect the change
+    setUserPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId ? { ...post, status: "returned" } : post,
+      ),
+    );
+  };
+
   // Filter posts based on selected tab
-  const filteredPosts = selectedTab === "Active" ? userPosts : [];
+  const filteredPosts = userPosts.filter((post) =>
+    selectedTab === "Active"
+      ? post.status === "active"
+      : post.status === "returned",
+  );
 
   return (
     <View className="flex-1" style={{ backgroundColor }}>
@@ -58,6 +70,7 @@ export default function MyPostsScreen() {
           <PostCard
             key={post.id}
             id={post.id}
+            posterId={post.posterId}
             title={post.name}
             status={post.status}
             photo={post.photos[0]}
@@ -67,6 +80,7 @@ export default function MyPostsScreen() {
             })}
             location={post.buildingName || "Unknown Location"}
             tabActive={selectedTab === "Active"}
+            onMarkAsReturned={handleMarkAsReturned}
           />
         ))}
 

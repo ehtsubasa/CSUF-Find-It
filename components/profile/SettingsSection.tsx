@@ -1,41 +1,50 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from "@/context/AuthContext";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React from "react";
+import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
-export default function SettingsSection() {
-  const textColor = useThemeColor({}, 'text');
-  const iconColor = useThemeColor({}, 'icon');
-  const colorScheme = useColorScheme() ?? 'light';
+export default function SettingsSection({ userProfile }: { userProfile: any }) {
+  const textColor = useThemeColor({}, "text");
+  const iconColor = useThemeColor({}, "icon");
+  const colorScheme = useColorScheme() ?? "light";
 
   const router = useRouter();
   const { logOut } = useAuth();
 
   const handleLogout = async () => {
     await logOut();
-    router.replace('/login');
+    router.replace("/login");
   };
 
   return (
     <View className="px-4 mb-6">
-      <Text className="text-xs font-semibold mb-3 tracking-wider" style={{ color: iconColor }}>
+      <Text
+        className="text-xs font-semibold mb-3 tracking-wider"
+        style={{ color: iconColor }}
+      >
         SETTINGS
       </Text>
 
       {/* Notification Settings */}
       <TouchableOpacity
         className="flex-row items-center justify-between py-4 px-4 mb-2 rounded-xl"
-        style={{ backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#fff' }}
+        style={{ backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#fff" }}
       >
         <View className="flex-row items-center">
-          <View 
+          <View
             className="w-10 h-10 rounded-full items-center justify-center mr-3"
-            style={{ backgroundColor: colorScheme === 'dark' ? '#2a2a2a' : '#f3f4f6' }}
+            style={{
+              backgroundColor: colorScheme === "dark" ? "#2a2a2a" : "#f3f4f6",
+            }}
           >
-            <Ionicons name="notifications-outline" size={20} color={textColor} />
+            <Ionicons
+              name="notifications-outline"
+              size={20}
+              color={textColor}
+            />
           </View>
           <Text className="text-base" style={{ color: textColor }}>
             Notification Settings
@@ -45,33 +54,41 @@ export default function SettingsSection() {
       </TouchableOpacity>
 
       {/* Privacy & Security */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         className="flex-row items-center justify-between py-4 px-4 mb-2 rounded-xl"
-        style={{ backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#fff' }}
+        style={{ backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#fff" }}
       >
         <View className="flex-row items-center">
-          <View 
+          <View
             className="w-10 h-10 rounded-full items-center justify-center mr-3"
-            style={{ backgroundColor: colorScheme === 'dark' ? '#2a2a2a' : '#f3f4f6' }}
+            style={{
+              backgroundColor: colorScheme === "dark" ? "#2a2a2a" : "#f3f4f6",
+            }}
           >
-            <Ionicons name="shield-checkmark-outline" size={20} color={textColor} />
+            <Ionicons
+              name="shield-checkmark-outline"
+              size={20}
+              color={textColor}
+            />
           </View>
           <Text className="text-base" style={{ color: textColor }}>
             Privacy & Security
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={iconColor} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Help & Support */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         className="flex-row items-center justify-between py-4 px-4 mb-2 rounded-xl"
-        style={{ backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#fff' }}
+        style={{ backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#fff" }}
       >
         <View className="flex-row items-center">
-          <View 
+          <View
             className="w-10 h-10 rounded-full items-center justify-center mr-3"
-            style={{ backgroundColor: colorScheme === 'dark' ? '#2a2a2a' : '#f3f4f6' }}
+            style={{
+              backgroundColor: colorScheme === "dark" ? "#2a2a2a" : "#f3f4f6",
+            }}
           >
             <Ionicons name="help-circle-outline" size={20} color={textColor} />
           </View>
@@ -80,24 +97,24 @@ export default function SettingsSection() {
           </Text>
         </View>
         <Ionicons name="chevron-forward" size={20} color={iconColor} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Logout */}
       <TouchableOpacity
         className="flex-row items-center justify-between py-4 px-4 rounded-xl"
-        style={{ backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#fff' }}
+        style={{ backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#fff" }}
       >
         <Pressable onPress={handleLogout}>
           <View className="flex-row items-center">
-            <View 
+            <View
               className="w-10 h-10 rounded-full items-center justify-center mr-3"
-              style={{ backgroundColor: colorScheme === 'dark' ? '#2a2a2a' : '#f3f4f6' }}
+              style={{
+                backgroundColor: colorScheme === "dark" ? "#2a2a2a" : "#f3f4f6",
+              }}
             >
               <Ionicons name="log-out-outline" size={20} color="#ef4444" />
             </View>
-            <Text className="text-base text-red-500">
-              Logout
-            </Text>
+            <Text className="text-base text-red-500">Logout</Text>
           </View>
         </Pressable>
       </TouchableOpacity>

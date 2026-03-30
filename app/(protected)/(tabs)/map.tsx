@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useItemsActions } from "@/hooks/useItemsActions";
 import { useMapLocation } from "@/hooks/useMapLocations";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
@@ -48,8 +49,8 @@ export default function CampusMapScreen() {
     longitudeDelta: 0.005,
   });
   const { user } = useAuth();
-
-  const { getAllItems } = useItemsActions();
+  const { userProfile } = useUserProfile(user?.uid);
+  const { getAllItems, getBookmarkedItems } = useItemsActions();
 
   const filteredItems =
     selectedCategory === null
@@ -139,6 +140,9 @@ export default function CampusMapScreen() {
             selectedItem={selectedItem}
             currentUser={user}
             router={router}
+            isSaved={
+              userProfile?.savedItems?.includes(selectedItem.id) ?? false
+            }
           />
         )}
       </View>
