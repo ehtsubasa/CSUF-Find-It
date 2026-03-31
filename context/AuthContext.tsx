@@ -34,9 +34,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const logOut = async () => {
     try {
+      // Keep the app in a loading state while Firebase clears the session,
+      // so protected screens do not briefly render with a missing user.
+      setLoading(true);
       await signOut(auth);
-      setUser(null);
     } catch (error) {
+      setLoading(false);
       console.error("Error signing out:", error);
     }
   };

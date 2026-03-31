@@ -64,6 +64,7 @@ export default function LoginScreen() {
               {loading ? "Signing In..." : "Sign In"}
             </Text>
           </Pressable>
+
           <View className="items-start">
             <Link href="/account-recovery" className="text-sm underline mt-4">
               Forgot password?

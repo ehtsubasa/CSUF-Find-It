@@ -20,7 +20,6 @@ export default function EmailVerificationScreen() {
 
   const handleBackToLogin = async () => {
     await logOut();
-    router.replace("/login");
   };
 
   return (

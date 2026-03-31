@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/context/AuthContext';
@@ -11,12 +10,10 @@ export default function SettingsSection() {
   const iconColor = useThemeColor({}, 'icon');
   const colorScheme = useColorScheme() ?? 'light';
 
-  const router = useRouter();
   const { logOut } = useAuth();
 
   const handleLogout = async () => {
     await logOut();
-    router.replace('/login');
   };
 
   return (

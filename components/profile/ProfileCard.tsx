@@ -1,8 +1,10 @@
 import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useItemsActions } from "@/hooks/useItemsActions";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
 export default function ProfileCard() {
@@ -12,6 +14,32 @@ export default function ProfileCard() {
   const colorScheme = useColorScheme() ?? "light";
 
   const currentUser = useAuth().user;
+  const { getUserItems } = useItemsActions();
+  const [itemsFound, setItemsFound] = useState(0);
+  const [itemsReturned, setItemsReturned] = useState(0);
+
+  const loadProfileCounts = () => {
+    if (!currentUser?.uid) {
+      setItemsFound(0);
+      setItemsReturned(0);
+      return;
+    }
+
+    getUserItems(currentUser.uid).then((items) => {
+      setItemsFound(items.length);
+      setItemsReturned(items.filter((item) => !item.isActive).length);
+    });
+  };
+
+  useEffect(() => {
+    loadProfileCounts();
+  }, [currentUser?.uid]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadProfileCounts();
+    }, [currentUser?.uid]),
+  );
 
   const cardBgColor = colorScheme === "dark" ? "#1a1a1a" : "#f9fafb";
   return (
@@ -55,7 +83,7 @@ export default function ProfileCard() {
             className="text-3xl font-bold mb-1"
             style={{ color: tintColor }}
           >
-            1
+            {itemsFound}
           </Text>
           <Text className="text-xs font-semibold" style={{ color: iconColor }}>
             ITEMS FOUND
@@ -71,7 +99,7 @@ export default function ProfileCard() {
             className="text-3xl font-bold mb-1"
             style={{ color: tintColor }}
           >
-            2
+            {itemsReturned}
           </Text>
           <Text className="text-xs font-semibold" style={{ color: iconColor }}>
             ITEMS RETURNED

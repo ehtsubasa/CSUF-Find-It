@@ -11,6 +11,31 @@ import {
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
+const normalizeStatus = (status?: string) => {
+  const normalized = (status ?? "Active").trim().toLowerCase();
+  return normalized === "active" ? "Active" : "Claimed";
+};
+
+const mapReportedItem = (doc: any) => {
+  const data = doc.data();
+  const status = normalizeStatus(data.status);
+
+  return {
+    id: doc.id,
+    name: data.name ?? data.description ?? "No title",
+    status,
+    location: data.location ?? [0, 0],
+    buildingName: data.buildingName ?? "Unknown",
+    createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+    posterId: data.posterId ?? "",
+    posterName: data.posterName ?? "Unknown",
+    posterAvatar: data.posterAvatar ?? "",
+    photos: data.photos ?? [],
+    category: data.category ?? "Other",
+    isActive: status === "Active",
+  };
+};
+
 export function useItemsActions() {
   const submitItem = async (
     lat: number,
@@ -69,7 +94,7 @@ export function useItemsActions() {
         category: category,
         createdAt: new Date(),
         buildingName: buildingName || "Unknown",
-        status: "active",
+        status: "Active",
       });
       console.log("Document written with ID: ", docRef);
       console.log("Document written with ID: ", docRef.id);
@@ -82,76 +107,20 @@ export function useItemsActions() {
   const getAllItems = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "reportedItems"));
-      const items = querySnapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          name: data.name ?? data.description ?? "No title",
-          status: data.status ?? "active",
-          location: data.location ?? [0, 0],
-          buildingName: data.buildingName ?? "Unknown",
-          createdAt: data.createdAt?.toDate
-            ? data.createdAt.toDate()
-            : new Date(),
-
-          // user info
-          posterId: data.posterId ?? "",
-          posterName: data.posterName ?? "Unknown",
-          posterAvatar: data.posterAvatar ?? "",
-          photos: data.photos ?? [],
-          category: data.category ?? "Other",
-          isActive: data.status === "active",
-        };
-      });
+      const items = querySnapshot.docs.map(mapReportedItem);
       return items;
     } catch (e: any) {
       console.error("Error fetching documents: ", e);
       throw e;
     }
   };
-  const getPosterName = async (posterId: string) => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "users"));
-      const userDoc = querySnapshot.docs.find((user) => user.id === posterId);
-      if (userDoc) {
-        const userData = userDoc.data();
-        return userData.name;
-      } else {
-        console.warn(`User with ID ${posterId} not found.`);
-        return "Unknown User";
-      }
-    } catch (e: any) {
-      console.error("Error fetching user documents: ", e);
-      throw e;
-    }
-  };
-
   const getUserItems = async (userId: string) => {
     try {
       const querySnapshot = query(
         collection(db, "reportedItems"),
         where("posterId", "==", userId),
       );
-      const items = (await getDocs(querySnapshot)).docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          name: data.name ?? data.description ?? "No title",
-          status: data.status ?? "active",
-          location: data.location ?? [0, 0],
-          buildingName: data.buildingName ?? "Unknown",
-          createdAt: data.createdAt?.toDate
-            ? data.createdAt.toDate()
-            : new Date(),
-
-          posterId: data.posterId ?? "",
-          posterName: data.posterName ?? "Unknown",
-          posterAvatar: data.posterAvatar ?? "",
-          photos: data.photos ?? [],
-          category: data.category ?? "Other",
-          isActive: data.status === "active",
-        };
-      });
+      const items = (await getDocs(querySnapshot)).docs.map(mapReportedItem);
       return items;
     } catch (e: any) {
       console.error("Error fetching user items: ", e);

@@ -5,8 +5,10 @@ import MapControls from "@/components/map/MapControl";
 import RecentlyFoundItems from "@/components/map/RecentlyFoundItems";
 import { useAuth } from "@/context/AuthContext";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useConversations } from "@/hooks/useConversations";
 import { useItemsActions } from "@/hooks/useItemsActions";
 import { useMapLocation } from "@/hooks/useMapLocations";
+import { useNotifications } from "@/hooks/useNotifications";
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
@@ -20,6 +22,8 @@ interface LostItem {
   name: string;
   posterId: string;
   posterName: string;
+  posterAvatar: string;
+  photos: string[];
   category: string;
   location: number[];
   buildingName: string;
@@ -27,29 +31,31 @@ interface LostItem {
 }
 
 export default function CampusMapScreen() {
-  const { mapRef, handleUserLocation, handleInitialLocation, getBuildingName } =
-    useMapLocation();
+  const { mapRef, handleUserLocation, handleInitialLocation } = useMapLocation();
   const router = useRouter();
   const inset = useSafeAreaInsets();
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const backgroundColor = useThemeColor({}, "background");
   const [selectedItem, setSelectedItem] = useState<LostItem | null>(null);
-  const [location, setLocation] = useState<Location.LocationObject | null>(
-    null,
-  );
   const [lostItems, setLostItems] = useState<LostItem[]>([]);
-  const [initialPosition, setInitialPosition] = useState({
+  const initialPosition = {
     latitude: 33.8808,
     longitude: -117.885,
     latitudeDelta: 0.005,
     longitudeDelta: 0.005,
-  });
+  };
   const { user } = useAuth();
-
   const { getAllItems } = useItemsActions();
+  const { chatUsers } = useConversations(user);
+  const { lastSeenAt, newItemsCount, claimedPostsCount, hasNotifications, markAllSeen } =
+    useNotifications(user);
+
+  const unreadMessagesCount = chatUsers.reduce(
+    (total, u) => total + u.unreadCount,
+    0,
+  );
 
   const filteredItems =
     selectedCategory === null
@@ -58,21 +64,8 @@ export default function CampusMapScreen() {
 
   useEffect(() => {
     Location.requestForegroundPermissionsAsync();
-
-    const loadItems = async () => {
-      const items = await getAllItems();
-      setLostItems(items);
-    };
-
-    loadItems();
+    getAllItems().then(setLostItems);
   }, []);
-
-  let text = "Waiting...";
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = JSON.stringify(location);
-  }
 
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -90,7 +83,15 @@ export default function CampusMapScreen() {
       className="flex-1"
       style={{ backgroundColor, paddingTop: inset.top - 40 }}
     >
-      <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
+      <Header
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        hasNotifications={hasNotifications}
+        newItemsCount={newItemsCount}
+        claimedPostsCount={claimedPostsCount}
+        newMessagesCount={unreadMessagesCount}
+        onNotificationDismiss={markAllSeen}
+      />
 
       <CategoryButtons
         selectedCategory={selectedCategory}
@@ -98,7 +99,6 @@ export default function CampusMapScreen() {
       />
 
       <View className="flex-1">
-        {/* Map View */}
         <MapView
           ref={mapRef}
           style={{ flex: 1 }}
@@ -125,13 +125,26 @@ export default function CampusMapScreen() {
             />
           ))}
         </MapView>
-        {/* Placeholder for recently found items*/}
-        <RecentlyFoundItems />
-        {/* User Location & Initial Location Buttons */}
+
+        <RecentlyFoundItems
+          lastSeenAt={lastSeenAt}
+          currentUserId={user?.uid ?? ""}
+          selectedCategory={selectedCategory}
+          onSelectItem={(item) => {
+            setSelectedItem({
+              ...item,
+              category: "",
+              location: [0, 0],
+            });
+            bottomSheetRef.current?.expand();
+          }}
+        />
+
         <MapControls
           onUserLocation={handleUserLocation}
           onInititalLocation={handleInitialLocation}
         />
+
         {selectedItem && (
           <ItemBottomSheet
             bottomSheetRef={bottomSheetRef}

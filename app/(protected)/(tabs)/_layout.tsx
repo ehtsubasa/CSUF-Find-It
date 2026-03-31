@@ -6,12 +6,14 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { router, Tabs } from "expo-router";
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
   const colorScheme = useColorScheme() ?? "light";
   const theme = Colors[colorScheme];
   const currentUser = useAuth()?.user;
   const { chatUsers } = useConversations(currentUser);
+  const { bottom } = useSafeAreaInsets();
 
   // loop through all chats and add up all unread messages
   const unreadMessagesCount = chatUsers.reduce(
@@ -27,7 +29,12 @@ export default function TabsLayout() {
         headerTintColor: theme.text,
         tabBarActiveTintColor: theme.backgroundIcon,
         tabBarInactiveTintColor: theme.tabIconDefault,
-        tabBarStyle: { backgroundColor: theme.background },
+        tabBarStyle: {
+          backgroundColor: theme.background,
+          height: 32 + bottom,
+          paddingBottom: bottom,
+          overflow: "visible",
+        },
       }}
     >
       <Tabs.Screen
@@ -61,6 +68,7 @@ export default function TabsLayout() {
             <TouchableOpacity
               activeOpacity={0.9}
               className="items-center justify-center"
+              style={{ marginTop: -24 }}
               onPress={() => router.push("/camera")}
             >
               <View

@@ -6,10 +6,11 @@ import { ScrollView, Text, View } from "react-native";
 import PostCard from "@/components/list/PostCard";
 import TabSelector from "@/components/list/TabSelector";
 import { useAuth } from "@/context/AuthContext";
+import { db } from "@/firebaseConfig";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { useItemsActions } from "@/hooks/useItemsActions";
 import { timeAgo } from "@/hooks/useTime";
+import { collection, onSnapshot, orderBy, query, where } from "firebase/firestore";
 
 interface Post {
   id: string;
@@ -31,21 +32,41 @@ export default function MyPostsScreen() {
   const iconColor = useThemeColor({}, "icon");
   const colorScheme = useColorScheme();
   const { user } = useAuth();
-  const { getUserItems } = useItemsActions();
   const [userPosts, setUserPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     if (!user) return;
-    const loadUserPosts = async () => {
-      const items = await getUserItems(user.uid);
-      setUserPosts(items);
-    };
-
-    loadUserPosts();
-  }, []);
+    const q = query(
+      collection(db, "reportedItems"),
+      where("posterId", "==", user.uid),
+      orderBy("createdAt", "desc"),
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setUserPosts(
+        snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            name: data.name ?? "No title",
+            posterId: data.posterId ?? "",
+            posterName: data.posterName ?? "",
+            status: data.status ?? "Active",
+            buildingName: data.buildingName ?? "Unknown",
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+            photos: data.photos ?? [],
+          };
+        }),
+      );
+    });
+    return unsubscribe;
+  }, [user?.uid]);
 
   // Filter posts based on selected tab
-  const filteredPosts = selectedTab === "Active" ? userPosts : [];
+  const filteredPosts = userPosts.filter((p) =>
+    selectedTab === "Active"
+      ? p.status.toLowerCase() === "active"
+      : p.status.toLowerCase() !== "active",
+  );
 
   return (
     <View className="flex-1" style={{ backgroundColor }}>
