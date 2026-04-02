@@ -39,7 +39,7 @@ export default function RegisterScreen() {
       setLoading(true);
       setError("");
       await register(name, email, password);
-      // router.replace("/(auth)/verify-email");
+      router.replace("/(auth)/verify-email");
     } catch (err: any) {
       setError(err.message || "Failed to register. Please try again.");
     } finally {
