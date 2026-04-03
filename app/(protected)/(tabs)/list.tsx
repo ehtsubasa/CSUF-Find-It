@@ -37,7 +37,6 @@ export default function MyPostsScreen() {
     const loadUserPosts = async () => {
       const items = await getUserItems(user.uid);
       setUserPosts(items);
-      console.log("Loading user posts with params:", items);
     };
     loadUserPosts();
   }, []);
@@ -47,7 +46,7 @@ export default function MyPostsScreen() {
     // Update local state to reflect the change
     setUserPosts((prevPosts) =>
       prevPosts.map((post) =>
-        post.id === postId ? { ...post, status: "returned" } : post,
+        post.id === postId ? { ...post, status: "Returned" } : post,
       ),
     );
   };
@@ -55,8 +54,8 @@ export default function MyPostsScreen() {
   // Filter posts based on selected tab
   const filteredPosts = userPosts.filter((post) =>
     selectedTab === "Active"
-      ? post.status === "active"
-      : post.status === "returned",
+      ? post.status === "Active"
+      : post.status === "Returned",
   );
 
   return (

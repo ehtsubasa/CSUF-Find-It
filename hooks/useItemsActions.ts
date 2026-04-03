@@ -50,7 +50,7 @@ export function useItemsActions() {
         category: category,
         createdAt: new Date(),
         buildingName: buildingName || "Unknown",
-        status: "active",
+        status: "Active",
       });
 
       await updateDoc(doc(db, "users", posterId), {
@@ -96,7 +96,7 @@ export function useItemsActions() {
       // only fetch items that are still active
       const q = query(
         collection(db, "reportedItems"),
-        where("status", "==", "active"),
+        where("status", "==", "Active"),
       );
 
       const querySnapshot = await getDocs(q);
@@ -106,7 +106,7 @@ export function useItemsActions() {
         return {
           id: doc.id,
           name: data.name ?? data.description ?? "No title",
-          status: data.status ?? "active",
+          status: data.status ?? "Active",
           location: data.location ?? [0, 0],
           buildingName: data.buildingName ?? "Unknown",
           createdAt: data.createdAt?.toDate
@@ -119,7 +119,7 @@ export function useItemsActions() {
           posterAvatar: data.posterAvatar ?? "",
           photos: data.photos ?? [],
           category: data.category ?? "Other",
-          isActive: data.status === "active",
+          isActive: data.status === "Active",
         };
       });
       return items;
@@ -140,7 +140,7 @@ export function useItemsActions() {
         return {
           id: doc.id,
           name: data.name ?? data.description ?? "No title",
-          status: data.status ?? "active",
+          status: data.status ?? "Active",
           location: data.location ?? [0, 0],
           buildingName: data.buildingName ?? "Unknown",
           createdAt: data.createdAt?.toDate
@@ -152,7 +152,7 @@ export function useItemsActions() {
           posterAvatar: data.posterAvatar ?? "",
           photos: data.photos ?? [],
           category: data.category ?? "Other",
-          isActive: data.status === "active",
+          isActive: data.status === "Active",
         };
       });
       return items;
@@ -180,7 +180,7 @@ export function useItemsActions() {
       const docRef = doc(db, "reportedItems", id);
 
       await updateDoc(docRef, {
-        status: "returned",
+        status: "Returned",
       });
 
       // increment the itemsReturnedCount for the poster

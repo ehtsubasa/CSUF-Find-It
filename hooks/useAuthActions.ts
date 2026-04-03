@@ -1,3 +1,4 @@
+import { DEFAULT_AVATAR } from "@/constants/user";
 import { auth, db } from "@/firebaseConfig";
 import {
   createUserWithEmailAndPassword,
@@ -7,9 +8,6 @@ import {
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { Alert } from "react-native";
-
-const DEFAULT_AVATAR =
-  "https://firebasestorage.googleapis.com/v0/b/titanfind-806b8.firebasestorage.app/o/avatars%2FDEFAULT_PFP.png?alt=media&token=2c4ed3fe-bf09-4ee9-a1f6-0684e7ef1d03";
 
 export function useAuthActions() {
   const login = async (email: string, password: string) => {
@@ -35,13 +33,22 @@ export function useAuthActions() {
       );
 
       const user = userCredential.user;
-      await updateProfile(user, { displayName: name });
+      await updateProfile(user, {
+        displayName: name,
+        photoURL: DEFAULT_AVATAR,
+      });
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         name,
         email,
         avatarUrl: DEFAULT_AVATAR,
         createdAt: new Date(),
+
+        // initialize other fields
+        itemsActiveCount: 0,
+        itemsFoundCount: 0,
+        itemsReturnedCount: 0,
+        savedItems: [],
       });
       // await sendEmailVerification(user);
       return { user, success: true };

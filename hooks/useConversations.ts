@@ -1,12 +1,13 @@
+import { DEFAULT_AVATAR } from "@/constants/user";
 import { db } from "@/firebaseConfig";
 import {
-    collection,
-    doc,
-    getDoc,
-    onSnapshot,
-    query,
-    Timestamp,
-    where
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
+  query,
+  Timestamp,
+  where,
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
@@ -15,6 +16,7 @@ interface User {
   name: string;
   email: string;
   avatarUrl: string;
+  lastMessageSenderId: string;
   lastMessage: string;
   timestamp: Timestamp;
   unreadCount: number;
@@ -36,33 +38,36 @@ export function useConversations(currentUser: any) {
 
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
-
         const otherUserId = data.participants.find(
           (uid: string) => uid !== currentUser.uid,
         );
-
         if (!otherUserId) continue;
 
-        const userSnap = await getDoc(doc(db, "users", otherUserId));
+        let userData: any = null;
 
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-
-          users.push({
-            uid: otherUserId,
-            name: userData.name ?? "",
-            email: userData.email ?? "",
-            avatarUrl: userData.avatarUrl ?? "",
-            lastMessage: data.lastMessage || "",
-            timestamp: data.lastUpdated || Timestamp.now(),
-            unreadCount: data.unreadCounts?.[currentUser.uid] ?? 0,
-          });
+        try {
+          const userSnap = await getDoc(doc(db, "users", otherUserId));
+          if (userSnap.exists()) {
+            userData = userSnap.data();
+          }
+        } catch (error) {
+          console.warn("Failed to fetch user data for conversation:", error);
         }
+
+        users.push({
+          uid: otherUserId,
+          name: userData?.name ?? "Deleted User",
+          email: userData?.email ?? "",
+          avatarUrl: userData?.avatarUrl ?? DEFAULT_AVATAR,
+          lastMessageSenderId: data.lastMessageSenderId ?? "",
+          lastMessage: data.lastMessage || "",
+          timestamp: data.lastUpdated || Timestamp.now(),
+          unreadCount: data.unreadCounts?.[currentUser.uid] ?? 0,
+        });
       }
 
       setChatUsers(users);
     });
-
     return unsubscribe;
   }, [currentUser?.uid]);
 

@@ -1,9 +1,11 @@
+import { db } from "@/firebaseConfig";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useItemsActions } from "@/hooks/useItemsActions";
 import { timeAgo } from "@/hooks/useTime";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { Image } from "expo-image";
+import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -103,7 +105,18 @@ export default function ItemBottomSheet({
             <TouchableOpacity
               className="flex-row rounded-2xl p-5 items-center gap-2 justify-center"
               style={{ backgroundColor: buttonBackgroundColor }}
-              onPress={() => {
+              onPress={async () => {
+                const userSnap = await getDoc(
+                  doc(db, "users", selectedItem.posterId),
+                );
+
+                if (!userSnap.exists()) {
+                  alert(
+                    "User not found - they may have deleted their account.",
+                  );
+                  return;
+                }
+
                 const chatId = [currentUser.uid, selectedItem.posterId]
                   .sort()
                   .join("_");
@@ -112,20 +125,10 @@ export default function ItemBottomSheet({
                   pathname: "/chat/[id]",
                   params: {
                     id: chatId,
-                    selectedItem: selectedItem.name,
                     selectedItemId: selectedItem.id,
-                    selectedItemPhoto: encodeURIComponent(
-                      selectedItem.photos[0],
-                    ),
-                    selectedItemStatus: selectedItem.status,
-                    selectedItemCreatedAt: timeAgo(selectedItem.createdAt, {
-                      upperCase: true,
-                      recentLabel: "recently",
-                    }),
-                    selectedItemLocation: selectedItem.buildingName,
                     posterId: selectedItem.posterId,
+                    posterAvatar: selectedItem.posterAvatar,
                     posterName: selectedItem.posterName,
-                    posterAvatar: encodeURIComponent(selectedItem.posterAvatar),
                   },
                 });
               }}

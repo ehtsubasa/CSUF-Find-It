@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 interface LostItem {
   id: string;
   name: string;
+  photos: string[];
   posterId: string;
   posterName: string;
   category: string;

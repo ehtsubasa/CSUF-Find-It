@@ -30,37 +30,21 @@ export default function MessagesDetail() {
   const [text, setText] = useState("");
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const { id } = useLocalSearchParams<{ id: string }>();
   const currentUser = useAuth()?.user;
   const headerHeight = useHeaderHeight();
-  // const customHeaderHeight = 30; // Height of the item info header
+  const customHeaderHeight = 10; // Height of the item info header
   const [images, setImages] = useState<string[]>([]);
-  const {
-    posterId,
-    selectedItem,
-    selectedItemPhoto,
-    selectedItemLocation,
-    selectedItemStatus,
-    selectedItemCreatedAt,
-  } = useLocalSearchParams<{
+  const { id, posterId, selectedItemId } = useLocalSearchParams<{
+    id: string;
     posterId: string;
-    selectedItem: string;
-    selectedItemPhoto: string;
-    selectedItemLocation: string;
-    selectedItemStatus: string;
-    selectedItemCreatedAt: string;
+    selectedItemId?: string;
   }>();
-  const { messages, sendMessage } = useChat(id, currentUser, posterId);
-  const [pendingItem, setPendingItem] = useState(
-    selectedItem
-      ? {
-          name: selectedItem,
-          photo: decodeURIComponent(selectedItemPhoto),
-          location: selectedItemLocation,
-          status: selectedItemStatus,
-          createdAt: selectedItemCreatedAt,
-        }
-      : null,
+  const shouldStartInDraft = Boolean(selectedItemId);
+  const { messages, sendMessage } = useChat(
+    id,
+    currentUser,
+    posterId,
+    shouldStartInDraft,
   );
 
   const pickImage = async () => {
@@ -104,35 +88,52 @@ export default function MessagesDetail() {
         backgroundColor: backgroundColor,
       }}
     >
-      <View style={{ flex: 1 }}>
-        <GiftedChat
-          messages={messages}
-          text={text}
-          onSend={(messages: any) => {
-            sendMessage(messages[0].text, pendingItem, images);
-            // Clear input and images after sending
-            setText("");
-            setImages([]);
-            setPendingItem(null);
-          }}
-          user={{
-            _id: currentUser?.uid || "1",
-            name: currentUser?.displayName || "You",
-          }}
-          keyboardAvoidingViewProps={{
-            keyboardVerticalOffset: headerHeight,
-          }}
-          isAlignedTop
-          isSendButtonAlwaysVisible
-          textInputProps={{
-            style: isDark && { backgroundColor: "#2a2a2a", color: "#fff" },
-            onChangeText: setText,
-          }}
-          renderChatFooter={() =>
-            images.length > 0 && (
+      <GiftedChat
+        messages={messages}
+        text={text}
+        onSend={(messages: any) => {
+          sendMessage(messages[0].text || "", images);
+          // Clear input and images after sending
+          setText("");
+          setImages([]);
+        }}
+        user={{
+          _id: currentUser?.uid || "1",
+          name: currentUser?.displayName || "You",
+        }}
+        keyboardAvoidingViewProps={{
+          keyboardVerticalOffset: headerHeight + customHeaderHeight,
+        }}
+        isAlignedTop
+        isSendButtonAlwaysVisible
+        textInputProps={{
+          style: isDark && { backgroundColor: "#2a2a2a", color: "#fff" },
+          onChangeText: setText,
+        }}
+        renderSend={(props) => (
+          <Send {...props} isTextOptional={true}>
+            <View
+              style={{
+                height: 40,
+                width: 40,
+                justifyContent: "center",
+                alignItems: "center",
+                marginRight: 10,
+                marginVertical: 10,
+                backgroundColor: backgroundColor,
+                borderRadius: 22,
+              }}
+            >
+              <Ionicons name="send" size={22} color={iconColor} />
+            </View>
+          </Send>
+        )}
+        renderInputToolbar={(props) => (
+          <View>
+            {images.length > 0 && (
               <View
                 style={{
-                  height: 80,
+                  height: 85,
                   justifyContent: "center",
                 }}
               >
@@ -155,8 +156,8 @@ export default function MessagesDetail() {
                       <Image
                         source={{ uri: img }}
                         style={{
-                          width: 60,
-                          height: 60,
+                          width: 70,
+                          height: 70,
                           borderRadius: 10,
                         }}
                         contentFit="cover"
@@ -172,38 +173,19 @@ export default function MessagesDetail() {
                           position: "absolute",
                           top: -6,
                           right: -6,
-                          backgroundColor: "black",
+                          backgroundColor: "white",
                           borderRadius: 10,
                           padding: 2,
                         }}
                       >
-                        <Ionicons name="close" size={12} color="white" />
+                        <Ionicons name="close" size={12} color="red" />
                       </TouchableOpacity>
                     </View>
                   ))}
                 </ScrollView>
               </View>
-            )
-          }
-          renderSend={(props) => (
-            <Send {...props}>
-              <View
-                style={{
-                  height: 40,
-                  width: 40,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginRight: 10,
-                  marginVertical: 10,
-                  backgroundColor: backgroundColor,
-                  borderRadius: 22,
-                }}
-              >
-                <Ionicons name="send" size={22} color={iconColor} />
-              </View>
-            </Send>
-          )}
-          renderInputToolbar={(props) => (
+            )}
+
             <InputToolbar
               {...props}
               containerStyle={{
@@ -228,48 +210,48 @@ export default function MessagesDetail() {
                 </TouchableOpacity>
               )}
             />
-          )}
-          renderComposer={(props) => (
-            <Composer
-              {...props}
-              textInputProps={{
-                style: {
-                  backgroundColor: buttonBackgroundColor,
-                  borderRadius: 20,
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
-                  color: isDark ? "white" : "black",
-                  marginHorizontal: 8,
-                  minHeight: 38,
-                  marginVertical: 10,
-                },
-                onChangeText: setText,
-                placeholder: "Type a message...",
-                placeholderTextColor: textColor,
-              }}
-            />
-          )}
-          renderBubble={(props) => (
-            <Bubble
-              {...props}
-              wrapperStyle={{
-                right: {
-                  borderTopLeftRadius: 16,
-                  borderTopRightRadius: 16,
-                  borderBottomLeftRadius: 16,
-                  borderBottomRightRadius: 0,
-                },
-                left: {
-                  borderTopLeftRadius: 16,
-                  borderTopRightRadius: 16,
-                  borderBottomLeftRadius: 0,
-                  borderBottomRightRadius: 16,
-                },
-              }}
-            />
-          )}
-        />
-      </View>
+          </View>
+        )}
+        renderComposer={(props) => (
+          <Composer
+            {...props}
+            textInputProps={{
+              style: {
+                backgroundColor: buttonBackgroundColor,
+                borderRadius: 20,
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                color: isDark ? "white" : "black",
+                marginHorizontal: 8,
+                minHeight: 38,
+                marginVertical: 10,
+              },
+              onChangeText: setText,
+              placeholder: "Type a message...",
+              placeholderTextColor: textColor,
+            }}
+          />
+        )}
+        renderBubble={(props) => (
+          <Bubble
+            {...props}
+            wrapperStyle={{
+              right: {
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                borderBottomLeftRadius: 16,
+                borderBottomRightRadius: 0,
+              },
+              left: {
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 16,
+              },
+            }}
+          />
+        )}
+      />
     </View>
   );
 }

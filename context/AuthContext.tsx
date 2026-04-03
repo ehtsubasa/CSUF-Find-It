@@ -1,5 +1,7 @@
-import { auth } from "@/firebaseConfig";
+import { DEFAULT_AVATAR } from "@/constants/user";
+import { auth, db } from "@/firebaseConfig";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import {
   createContext,
   PropsWithChildren,
@@ -25,7 +27,28 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const userRef = doc(db, "users", currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          await setDoc(
+            userRef,
+            {
+              uid: currentUser.uid,
+              name: currentUser.displayName ?? "Unknown",
+              email: currentUser.email ?? "",
+              avatarUrl: currentUser.photoURL ?? DEFAULT_AVATAR,
+              createdAt: new Date(),
+              itemsActiveCount: 0,
+              itemsFoundCount: 0,
+              itemsReturnedCount: 0,
+              savedItems: [],
+            },
+            { merge: true },
+          );
+        }
+      }
       setUser(currentUser);
       setLoading(false);
     });

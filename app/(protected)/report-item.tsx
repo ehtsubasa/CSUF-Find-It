@@ -12,10 +12,12 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useItemsActions } from "@/hooks/useItemsActions";
 import { useMapLocation } from "@/hooks/useMapLocations";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 export default function ReportItemScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { userProfile } = useUserProfile(user?.uid);
   const { submitItem } = useItemsActions();
   const { location, handleUserLocation, errorMsg, getBuildingName } =
     useMapLocation();
@@ -122,8 +124,8 @@ export default function ReportItemScreen() {
       userLocation.longitude,
       localPhotos,
       user?.uid || "posterId-placeholder",
-      user?.displayName || "posterName-placeholder",
-      user?.photoURL || "posterAvatar-placeholder",
+      userProfile?.displayName || "posterName-placeholder",
+      userProfile?.avatarUrl || "posterAvatar-placeholder",
       itemName.trim(),
       description,
       selectedCategory,

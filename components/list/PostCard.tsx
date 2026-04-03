@@ -75,7 +75,7 @@ export default function PostCard({
 
       {/* Active Indicator & Menu */}
       <View className="items-center gap-2">
-        {status === "active" && (
+        {status === "Active" && (
           <Menu>
             <MenuTrigger>
               <Ionicons name="ellipsis-vertical" size={20} color={iconColor} />
@@ -92,17 +92,6 @@ export default function PostCard({
               <MenuOption>
                 <TouchableOpacity
                   className="flex-row items-center px-4 py-3 gap-3"
-                  onPress={() => console.log("Edit post")}
-                >
-                  <Ionicons name="pencil" size={18} color={iconColor} />
-                  <Text style={{ color: iconColor, fontSize: 15 }}>
-                    Edit Post
-                  </Text>
-                </TouchableOpacity>
-              </MenuOption>
-              <MenuOption>
-                <TouchableOpacity
-                  className="flex-row items-center px-4 py-3 gap-3"
                   onPress={() => onMarkAsReturned?.(id, posterId)}
                 >
                   <Ionicons name="checkmark" size={18} color={iconColor} />
@@ -111,23 +100,14 @@ export default function PostCard({
                   </Text>
                 </TouchableOpacity>
               </MenuOption>
-              <MenuOption>
-                <View
-                  style={{
-                    height: 1,
-                    backgroundColor: "#374151",
-                    marginVertical: 6,
-                    marginHorizontal: 12,
-                  }}
-                />
-              </MenuOption>
+
               <MenuOption>
                 <TouchableOpacity
                   className="flex-row items-center px-4 py-3 gap-3"
                   onPress={() => deletePost(id, posterId)}
                 >
-                  <Ionicons name="trash" size={18} color={iconColor} />
-                  <Text style={{ color: iconColor, fontSize: 15 }}>
+                  <Ionicons name="trash" size={18} color="red" />
+                  <Text style={{ color: "red", fontSize: 15 }}>
                     Delete Post
                   </Text>
                 </TouchableOpacity>

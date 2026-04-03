@@ -1,9 +1,11 @@
 import { useAuth } from "@/context/AuthContext";
+import { db } from "@/firebaseConfig";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useItemsActions } from "@/hooks/useItemsActions";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
+import { doc, getDoc } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 
@@ -60,18 +62,24 @@ export default function SavedItemsScreen() {
                 <View className="flex-1 justify-between">
                   <Text
                     style={{ color: textColor }}
-                    className="font-bold text-xl"
+                    className="font-semibold text-lg"
                   >
                     {item.name ?? "No title"}
                   </Text>
-                  <Text style={{ color: textColor }} className="font-bold">
+                  <Text
+                    style={{ color: textColor }}
+                    className="text-base font-medium"
+                  >
                     {item.posterName ?? "Unknown"}
                   </Text>
-                  <View className="flex-row items-center">
-                    <Ionicons name="location" size={16} color={textColor} />
+                  <Text style={{ color: textColor }} className="text-xs">
+                    {item.status ?? "Unknown"}
+                  </Text>
+                  <View className="flex-row items-center ">
+                    <Ionicons name="location" size={8} color={textColor} />
                     <Text
                       style={{ color: textColor }}
-                      className="text-gray-500 ml-1"
+                      className="text-gray-400 ml-1 text-xs"
                     >
                       {item.buildingName ?? "Unknown"}
                     </Text>
@@ -97,8 +105,17 @@ export default function SavedItemsScreen() {
             <TouchableOpacity
               className="mt-4 p-3 rounded-xl items-center flex-row justify-center gap-2"
               style={{ backgroundColor: "#2563EB" }} // blue
-              onPress={() => {
+              onPress={async () => {
                 if (!user) return;
+
+                const userSnap = await getDoc(doc(db, "users", item.posterId));
+
+                if (!userSnap.exists()) {
+                  alert(
+                    "User not found - they may have deleted their account.",
+                  );
+                  return;
+                }
 
                 const chatId = [user.uid, item.posterId].sort().join("_");
 
