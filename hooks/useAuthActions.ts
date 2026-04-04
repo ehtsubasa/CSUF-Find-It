@@ -1,6 +1,10 @@
 import { DEFAULT_AVATAR } from "@/constants/user";
 import { auth, db } from "@/firebaseConfig";
 import {
+  getLoginErrorMessage,
+  getRegisterErrorMessage,
+} from "@/utils/authErrors";
+import {
   createUserWithEmailAndPassword,
   sendEmailVerification,
   signInWithEmailAndPassword,
@@ -19,35 +23,9 @@ export function useAuthActions() {
       );
       return { user: userCredential.user, success: true };
     } catch (error) {
-      console.error("Error logging in:", error);
-      throw error;
+      throw new Error(getLoginErrorMessage(error));
     }
   };
-
-  // const register = async (name: string, email: string, password: string) => {
-  //   try {
-  //     const userCredential = await createUserWithEmailAndPassword(
-  //       auth,
-  //       email,
-  //       password,
-  //     );
-
-  //     const user = userCredential.user;
-  //     await updateProfile(user, { displayName: name });
-  //     await setDoc(doc(db, "users", user.uid), {
-  //       uid: user.uid,
-  //       name,
-  //       email,
-  //       avatarUrl: DEFAULT_AVATAR,
-  //       createdAt: new Date(),
-  //     });
-  //     await sendEmailVerification(user);
-  //     return { user, success: true };
-  //   } catch (error) {
-  //     console.error("Error registering user:", error);
-  //     throw error;
-  //   }
-  // };
 
   const register = async (name: string, email: string, password: string) => {
     try {
@@ -75,11 +53,11 @@ export function useAuthActions() {
         itemsReturnedCount: 0,
         savedItems: [],
       });
-      // await sendEmailVerification(user);
+
+      await sendEmailVerification(user);
       return { user, success: true };
     } catch (error) {
-      console.error("Error registering user:", error);
-      throw error;
+      throw new Error(getRegisterErrorMessage(error));
     }
   };
 

@@ -1,11 +1,18 @@
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function WelcomeScreen() {
+  const router = useRouter();
+  const backgroundColor = useThemeColor({}, "background");
+
   return (
-    <SafeAreaView className="flex-1 bg-white justify-between">
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: backgroundColor }}
+    >
       <View className="flex-1 justify-center items-center">
         <Image
           source={require("../assets/images/Logoo.png")}
@@ -18,7 +25,6 @@ export default function WelcomeScreen() {
           <Text className="text-orange-600">Titan</Text>
           <Text className="text-blue-600"> Find</Text>
         </Text>
-
         <Text className="text-center text-sm text-gray-400 mb-10">
           Lost something on campus? We can help you find it!
         </Text>
@@ -30,7 +36,6 @@ export default function WelcomeScreen() {
             </Text>
           </Pressable>
         </Link>
-
         <Link href="/login" asChild>
           <Pressable className="w-full border border-blue-600 py-4 rounded-2xl">
             <Text className="text-center text-blue-600 text-lg font-semibold">

@@ -137,7 +137,12 @@ export default function SavedItemsScreen() {
           </View>
         ))
       ) : (
-        <Text className="text-gray-500">You haven't saved any items yet.</Text>
+        <Text
+          className="text-gray-500 text-center mt-20"
+          style={{ color: textColor }}
+        >
+          You haven't saved any items yet.
+        </Text>
       )}
     </View>
   );
