@@ -1,13 +1,13 @@
-import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
-
 import PostCard from "@/components/list/PostCard";
 import TabSelector from "@/components/list/TabSelector";
 import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useItemsActions } from "@/hooks/useItemsActions";
 import { timeAgo } from "@/hooks/useTime";
+import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
+import { ScrollView, Text, View } from "react-native";
 
 interface Post {
   id: string;
@@ -38,7 +38,7 @@ export default function MyPostsScreen() {
       setUserPosts(items);
     };
     loadUserPosts();
-  }, []);
+  }, [user]);
 
   const handleMarkAsReturned = async (postId: string, posterId: string) => {
     await markAsReturned(postId, posterId);

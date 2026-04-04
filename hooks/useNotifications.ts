@@ -56,7 +56,7 @@ export function useNotifications(currentUser: any) {
     const q = query(
       collection(db, "reportedItems"),
       where("posterId", "==", currentUser.uid),
-      where("status", "==", "Claimed"),
+      where("status", "==", "Returned"),
     );
     const unsubscribe = onSnapshot(q, (snap) => {
       setClaimedPostsCount(

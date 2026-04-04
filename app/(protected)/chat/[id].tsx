@@ -34,11 +34,15 @@ export default function MessagesDetail() {
   const headerHeight = useHeaderHeight();
   const customHeaderHeight = 10; // Height of the item info header
   const [images, setImages] = useState<string[]>([]);
-  const { id, posterId, selectedItemId } = useLocalSearchParams<{
-    id: string;
-    posterId: string;
-    selectedItemId?: string;
-  }>();
+  const { id, posterId, selectedItemId, posterAvatar, posterName } =
+    useLocalSearchParams<{
+      id: string;
+      posterId: string;
+      selectedItemId?: string;
+      posterAvatar?: string;
+      posterName?: string;
+    }>();
+
   const shouldStartInDraft = Boolean(selectedItemId);
   const { messages, sendMessage } = useChat(
     id,

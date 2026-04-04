@@ -7,13 +7,21 @@ export function useUserProfile(userId?: string) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setUserProfile(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
 
     const userRef = doc(db, "users", userId);
 
     const unsubscribe = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
         setUserProfile(docSnap.data());
+      } else {
+        setUserProfile(null);
       }
       setLoading(false);
     });

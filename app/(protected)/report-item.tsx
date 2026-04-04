@@ -7,6 +7,7 @@ import ItemDetailsForm from "@/components/report-items/ItemDetailsForm";
 import LocationSection from "@/components/report-items/LocationSection";
 import PhotoUpload from "@/components/report-items/PhotoUpload";
 import SubmitButton from "@/components/report-items/SubmitButton";
+import { DEFAULT_AVATAR } from "@/constants/user";
 import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
@@ -108,7 +109,7 @@ export default function ReportItemScreen() {
     setLocalPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!userLocation) {
       alert("Please enable location to report an item");
       return;
@@ -119,13 +120,13 @@ export default function ReportItemScreen() {
       return;
     }
 
-    submitItem(
+    await submitItem(
       userLocation.latitude,
       userLocation.longitude,
       localPhotos,
-      user?.uid || "posterId-placeholder",
-      userProfile?.displayName || "posterName-placeholder",
-      userProfile?.avatarUrl || "posterAvatar-placeholder",
+      user?.uid || "Unknown User",
+      userProfile?.name || "Unknown User",
+      userProfile?.avatarUrl || DEFAULT_AVATAR,
       itemName.trim(),
       description,
       selectedCategory,

@@ -25,7 +25,6 @@ interface LostItem {
   posterId: string;
   posterName: string;
   posterAvatar: string;
-  photos: string[];
   category: string;
   location: number[];
   buildingName: string;

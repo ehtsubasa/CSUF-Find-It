@@ -123,7 +123,9 @@ export default function SavedItemsScreen() {
                   pathname: "/chat/[id]",
                   params: {
                     id: chatId,
+                    selectedItemId: item.id,
                     posterId: item.posterId,
+                    posterAvatar: item.posterAvatar,
                     posterName: item.posterName,
                   },
                 });

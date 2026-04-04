@@ -1,3 +1,4 @@
+import { DEFAULT_AVATAR } from "@/constants/user";
 import { db, storage } from "@/firebaseConfig";
 import {
   addDoc,
@@ -17,7 +18,7 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
 const normalizeStatus = (status?: string) => {
   const normalized = (status ?? "Active").trim().toLowerCase();
-  return normalized === "active" ? "Active" : "Claimed";
+  return normalized === "active" ? "Active" : "Returned";
 };
 
 const mapReportedItem = (doc: any) => {
@@ -33,7 +34,7 @@ const mapReportedItem = (doc: any) => {
     createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
     posterId: data.posterId ?? "",
     posterName: data.posterName ?? "Unknown",
-    posterAvatar: data.posterAvatar ?? "",
+    posterAvatar: data.posterAvatar ?? DEFAULT_AVATAR,
     photos: data.photos ?? [],
     category: data.category ?? "Other",
     isActive: status === "Active",
@@ -83,6 +84,7 @@ export function useItemsActions() {
       });
     } catch (e) {
       console.error("Error adding document: ", e);
+      throw e;
     }
   };
 
@@ -126,27 +128,7 @@ export function useItemsActions() {
 
       const querySnapshot = await getDocs(q);
 
-      const items = querySnapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          name: data.name ?? data.description ?? "No title",
-          status: data.status ?? "Active",
-          location: data.location ?? [0, 0],
-          buildingName: data.buildingName ?? "Unknown",
-          createdAt: data.createdAt?.toDate
-            ? data.createdAt.toDate()
-            : new Date(),
-
-          // user info
-          posterId: data.posterId ?? "",
-          posterName: data.posterName ?? "Unknown",
-          posterAvatar: data.posterAvatar ?? "",
-          photos: data.photos ?? [],
-          category: data.category ?? "Other",
-          isActive: data.status === "Active",
-        };
-      });
+      const items = querySnapshot.docs.map(mapReportedItem);
       return items;
     } catch (e: any) {
       console.error("Error fetching documents: ", e);
@@ -156,30 +138,14 @@ export function useItemsActions() {
 
   const getUserItems = async (userId: string) => {
     try {
-      const querySnapshot = query(
+      const q = query(
         collection(db, "reportedItems"),
         where("posterId", "==", userId),
       );
-      const items = (await getDocs(querySnapshot)).docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          name: data.name ?? data.description ?? "No title",
-          status: data.status ?? "Active",
-          location: data.location ?? [0, 0],
-          buildingName: data.buildingName ?? "Unknown",
-          createdAt: data.createdAt?.toDate
-            ? data.createdAt.toDate()
-            : new Date(),
 
-          posterId: data.posterId ?? "",
-          posterName: data.posterName ?? "Unknown",
-          posterAvatar: data.posterAvatar ?? "",
-          photos: data.photos ?? [],
-          category: data.category ?? "Other",
-          isActive: data.status === "Active",
-        };
-      });
+      const querySnapshot = await getDocs(q);
+
+      const items = querySnapshot.docs.map(mapReportedItem);
       return items;
     } catch (e: any) {
       console.error("Error fetching user items: ", e);
@@ -197,6 +163,7 @@ export function useItemsActions() {
       });
     } catch (e) {
       console.error("Error deleting document: ", e);
+      throw e;
     }
   };
 
@@ -215,6 +182,7 @@ export function useItemsActions() {
       });
     } catch (e) {
       console.error("Error marking document as returned: ", e);
+      throw e;
     }
   };
 
@@ -267,7 +235,7 @@ export function useItemsActions() {
         savedItemIds.map(async (id: string) => {
           const itemSnap = await getDoc(doc(db, "reportedItems", id));
           if (itemSnap.exists()) {
-            return { id: itemSnap.id, ...itemSnap.data() };
+            return mapReportedItem(itemSnap);
           }
           return null;
         }),

@@ -1,12 +1,9 @@
-import { useColorScheme }, { useEffect, useState } from "@/hooks/use-color-scheme";
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { useAuth } from '@/context/AuthContext';
-import { useItemsActions } from '@/hooks/useItemsActions';
-import { useFocusEffect } from '@react-navigation/native';
 
 export default function ActivitySection({ userProfile }: { userProfile: any }) {
   const textColor = useThemeColor({}, "text");

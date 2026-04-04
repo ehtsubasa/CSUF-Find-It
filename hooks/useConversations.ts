@@ -38,6 +38,7 @@ export function useConversations(currentUser: any) {
 
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
+
         const otherUserId = data.participants.find(
           (uid: string) => uid !== currentUser.uid,
         );
@@ -49,9 +50,12 @@ export function useConversations(currentUser: any) {
           const userSnap = await getDoc(doc(db, "users", otherUserId));
           if (userSnap.exists()) {
             userData = userSnap.data();
+          } else {
+            continue; // Skip if user data doesn't exist
           }
         } catch (error) {
           console.warn("Failed to fetch user data for conversation:", error);
+          continue;
         }
 
         users.push({
