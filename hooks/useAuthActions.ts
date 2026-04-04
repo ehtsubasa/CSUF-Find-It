@@ -24,6 +24,31 @@ export function useAuthActions() {
     }
   };
 
+  // const register = async (name: string, email: string, password: string) => {
+  //   try {
+  //     const userCredential = await createUserWithEmailAndPassword(
+  //       auth,
+  //       email,
+  //       password,
+  //     );
+
+  //     const user = userCredential.user;
+  //     await updateProfile(user, { displayName: name });
+  //     await setDoc(doc(db, "users", user.uid), {
+  //       uid: user.uid,
+  //       name,
+  //       email,
+  //       avatarUrl: DEFAULT_AVATAR,
+  //       createdAt: new Date(),
+  //     });
+  //     await sendEmailVerification(user);
+  //     return { user, success: true };
+  //   } catch (error) {
+  //     console.error("Error registering user:", error);
+  //     throw error;
+  //   }
+  // };
+
   const register = async (name: string, email: string, password: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(

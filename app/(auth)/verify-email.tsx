@@ -12,6 +12,8 @@ export default function EmailVerificationScreen() {
   const handleContinue = async () => {
     await user?.reload();
     if (user?.emailVerified) {
+      console.log("\n");
+      console.log("Reloaded user data:", user);
       router.replace("/(protected)/(tabs)/map");
     } else {
       alert("Your email is not verified yet. Please check your inbox.");
@@ -20,6 +22,7 @@ export default function EmailVerificationScreen() {
 
   const handleBackToLogin = async () => {
     await logOut();
+    router.replace("/login");
   };
 
   return (
@@ -43,12 +46,12 @@ export default function EmailVerificationScreen() {
         onPress={handleContinue}
       >
         <Text className="text-center text-white font-semibold">
-          I've Verified My Email
+          I&apos;ve Verified My Email
         </Text>
       </Pressable>
 
       <Text className="text-center text-gray-400 mb-4">
-        Still can't find the email?
+        Still can&apos;t find the email?
       </Text>
       <Pressable
         className="bg-[#084B8A] py-3 px-6 rounded-md mb-6"
