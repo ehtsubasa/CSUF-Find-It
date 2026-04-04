@@ -15,6 +15,31 @@ import {
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
+const normalizeStatus = (status?: string) => {
+  const normalized = (status ?? "Active").trim().toLowerCase();
+  return normalized === "active" ? "Active" : "Claimed";
+};
+
+const mapReportedItem = (doc: any) => {
+  const data = doc.data();
+  const status = normalizeStatus(data.status);
+
+  return {
+    id: doc.id,
+    name: data.name ?? data.description ?? "No title",
+    status,
+    location: data.location ?? [0, 0],
+    buildingName: data.buildingName ?? "Unknown",
+    createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : new Date(),
+    posterId: data.posterId ?? "",
+    posterName: data.posterName ?? "Unknown",
+    posterAvatar: data.posterAvatar ?? "",
+    photos: data.photos ?? [],
+    category: data.category ?? "Other",
+    isActive: status === "Active",
+  };
+};
+
 export function useItemsActions() {
   const submitItem = async (
     lat: number,

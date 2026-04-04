@@ -2,7 +2,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import React from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
@@ -11,12 +10,10 @@ export default function SettingsSection({ userProfile }: { userProfile: any }) {
   const iconColor = useThemeColor({}, "icon");
   const colorScheme = useColorScheme() ?? "light";
 
-  const router = useRouter();
   const { logOut } = useAuth();
 
   const handleLogout = async () => {
     await logOut();
-    router.replace("/login");
   };
 
   return (

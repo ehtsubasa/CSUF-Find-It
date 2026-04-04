@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
-const CATEGORIES = ["Electronics", "Clothing", "Keys"];
+const CATEGORIES = ["Electronics", "Clothing", "Keys", "Other"];
 
 export default function ItemDetailsForm({
   itemName,

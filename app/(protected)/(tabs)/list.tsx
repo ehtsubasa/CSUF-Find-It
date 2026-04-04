@@ -7,7 +7,6 @@ import TabSelector from "@/components/list/TabSelector";
 import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
-import { useItemsActions } from "@/hooks/useItemsActions";
 import { timeAgo } from "@/hooks/useTime";
 
 interface Post {
