@@ -19,7 +19,7 @@ type AuthState = {
 export const AuthContext = createContext<AuthState>({
   user: null,
   loading: true,
-  logOut: async () => {},
+  logOut: async () => { },
 });
 
 export function AuthProvider({ children }: PropsWithChildren) {
@@ -28,29 +28,34 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        const userRef = doc(db, "users", currentUser.uid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-          await setDoc(
-            userRef,
-            {
-              uid: currentUser.uid,
-              name: currentUser.displayName ?? "Unknown",
-              email: currentUser.email ?? "",
-              avatarUrl: currentUser.photoURL ?? DEFAULT_AVATAR,
-              createdAt: new Date(),
-              itemsActiveCount: 0,
-              itemsFoundCount: 0,
-              itemsReturnedCount: 0,
-              savedItems: [],
-            },
-            { merge: true },
-          );
+      try {
+        if (currentUser) {
+          const userRef = doc(db, "users", currentUser.uid);
+          const userSnap = await getDoc(userRef);
+          if (!userSnap.exists()) {
+            await setDoc(
+              userRef,
+              {
+                uid: currentUser.uid,
+                name: currentUser.displayName ?? "Unknown",
+                email: currentUser.email ?? "",
+                avatarUrl: currentUser.photoURL ?? DEFAULT_AVATAR,
+                createdAt: new Date(),
+                itemsActiveCount: 0,
+                itemsFoundCount: 0,
+                itemsReturnedCount: 0,
+                savedItems: [],
+              },
+              { merge: true },
+            );
+          }
         }
+        setUser(currentUser);
+      } catch (error) {
+        console.error("Error checking user existence:", error);
+      } finally {
+        setLoading(false);
       }
-      setUser(currentUser);
-      setLoading(false);
     });
     return () => unsubscribe();
   }, []);

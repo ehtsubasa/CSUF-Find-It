@@ -1,4 +1,4 @@
-import { db } from "@/firebaseConfig";
+import { auth, db } from "@/firebaseConfig";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useItemsActions } from "@/hooks/useItemsActions";
@@ -8,6 +8,8 @@ import * as ImagePicker from "expo-image-picker";
 import { doc, updateDoc } from "firebase/firestore";
 import React, { useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { updateProfile } from "firebase/auth";
+
 
 export default function ProfileCard({ userProfile }: { userProfile: any }) {
   const textColor = useThemeColor({}, "text");
@@ -18,6 +20,8 @@ export default function ProfileCard({ userProfile }: { userProfile: any }) {
   const { uploadImage } = useItemsActions();
 
   const cardBgColor = colorScheme === "dark" ? "#1a1a1a" : "#f9fafb";
+
+  if (!userProfile?.uid) return;
 
   const pickImage = async () => {
     const permissionResult =
@@ -42,15 +46,25 @@ export default function ProfileCard({ userProfile }: { userProfile: any }) {
       const localUri = result.assets[0].uri;
       setImage(localUri);
 
-      const [avatarUrl] = await uploadImage(
-        [localUri],
-        userProfile.uid,
-        "avatars",
-      );
+      try {
+        const [avatarUrl] = await uploadImage(
+          [localUri],
+          userProfile.uid,
+          "avatars",
+        );
 
-      await updateDoc(doc(db, "users", userProfile.uid), {
-        avatarUrl,
-      });
+        // Update user profile in Firestore
+        await updateDoc(doc(db, "users", userProfile.uid), {
+          avatarUrl,
+        });
+
+        // Update Firebase Auth profile also so that it's reflected in the auth state immediately
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { photoURL: avatarUrl });
+        }
+      } catch (error) {
+        Alert.alert("Upload failed", "Failed to upload avatar. Please try again.");
+      }
     }
   };
 
@@ -71,7 +85,8 @@ export default function ProfileCard({ userProfile }: { userProfile: any }) {
               className="absolute z-10 opacity-20"
             />
             <Image
-              source={{ uri: userProfile?.avatarUrl }}
+              // reflect the new image immediately after picking, or fallback to existing avatar or default image
+              source={{ uri: userProfile?.avatarUrl || image }}
               style={{ width: 96, height: 96, borderRadius: 48 }}
             />
           </TouchableOpacity>
