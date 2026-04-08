@@ -54,6 +54,8 @@ export default function MessagesScreen() {
                     {chatUsers.name}
                   </Text>
                   <Text className=" text-sm" style={{ color: textColor }}>
+                    {chatUsers.lastMessageSenderId === currentUser?.uid &&
+                      "You: "}
                     {chatUsers.lastMessage}
                   </Text>
                 </View>

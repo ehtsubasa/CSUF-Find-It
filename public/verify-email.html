@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Verify Email</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 480px;
+        margin: 60px auto;
+        padding: 24px;
+        line-height: 1.5;
+      }
+      button {
+        padding: 12px 16px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Verify your school email</h1>
+    <p id="status">Checking your verification link...</p>
+    <button
+      id="confirmBtn"
+      class="hidden"
+    >
+      Confirm email verification
+    </button>
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+      import {
+        getAuth,
+        checkActionCode,
+        applyActionCode,
+      } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+    //   console.log(
+    //     'Firebase SDK loaded. You can now use Firebase Auth functions in this page.',
+    //   );
+
+      const firebaseConfig = await fetch('/__/firebase/init.json').then((r) =>
+        r.json(),
+      );
+      const app = initializeApp(firebaseConfig);
+      // console.log(firebaseConfig, app);
+      const auth = getAuth(app);
+
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode');
+      const oobCode = params.get('oobCode');
+
+      const statusEl = document.getElementById('status');
+      const confirmBtn = document.getElementById('confirmBtn');
+
+      async function init() {
+        if (mode !== 'verifyEmail' || !oobCode) {
+          statusEl.textContent = 'Invalid verification link.';
+          return;
+        }
+
+        try {
+          await checkActionCode(auth, oobCode);
+          statusEl.textContent =
+            'Your link is valid. Click the button below to verify your email.';
+          confirmBtn.classList.remove('hidden');
+        } catch (err) {
+          statusEl.textContent =
+            'This verification link is invalid, expired, or already used.';
+        }
+      }
+
+      confirmBtn.addEventListener('click', async () => {
+        confirmBtn.disabled = true;
+        statusEl.textContent = 'Verifying your email...';
+
+        try {
+          await applyActionCode(auth, oobCode);
+          statusEl.textContent =
+            'Email verified successfully. You can return to the app now.';
+          confirmBtn.remove();
+        } catch (err) {
+          statusEl.textContent =
+            'Verification failed. The link may have expired or already been used.';
+          confirmBtn.disabled = false;
+        }
+      });
+
+      init();
+    </script>
+  </body>
+</html>

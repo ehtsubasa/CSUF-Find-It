@@ -107,6 +107,10 @@ export default function ProtectedLayout() {
         name="photo-view"
         options={{ title: "Photo View", headerShown: true }}
       />
+      <Stack.Screen
+        name="saved-items"
+        options={{ title: "Saved Items", headerShown: true }}
+      />
     </Stack>
   );
 }

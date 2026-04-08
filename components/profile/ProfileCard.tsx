@@ -1,27 +1,95 @@
-import { useAuth } from "@/context/AuthContext";
+import { auth, db } from "@/firebaseConfig";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
+import { useItemsActions } from "@/hooks/useItemsActions";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { Text, View } from "react-native";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import { doc, updateDoc } from "firebase/firestore";
+import React, { useState } from "react";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { updateProfile } from "firebase/auth";
 
-export default function ProfileCard() {
+
+export default function ProfileCard({ userProfile }: { userProfile: any }) {
   const textColor = useThemeColor({}, "text");
   const iconColor = useThemeColor({}, "icon");
   const tintColor = useThemeColor({}, "tint");
   const colorScheme = useColorScheme() ?? "light";
-
-  const currentUser = useAuth().user;
+  const [image, setImage] = useState<string | null>(null);
+  const { uploadImage } = useItemsActions();
 
   const cardBgColor = colorScheme === "dark" ? "#1a1a1a" : "#f9fafb";
+
+  if (!userProfile?.uid) return;
+
+  const pickImage = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert(
+        "Permission required",
+        "Permission to access the media library is required.",
+      );
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const localUri = result.assets[0].uri;
+      setImage(localUri);
+
+      try {
+        const [avatarUrl] = await uploadImage(
+          [localUri],
+          userProfile.uid,
+          "avatars",
+        );
+
+        // Update user profile in Firestore
+        await updateDoc(doc(db, "users", userProfile.uid), {
+          avatarUrl,
+        });
+
+        // Update Firebase Auth profile also so that it's reflected in the auth state immediately
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { photoURL: avatarUrl });
+        }
+      } catch (error) {
+        Alert.alert("Upload failed", "Failed to upload avatar. Please try again.");
+      }
+    }
+  };
+
   return (
     <View>
       {/* Profile Info */}
       <View className="items-center py-8">
         <View className="relative mb-4">
-          <View className="w-24 h-24 rounded-full bg-gray-300 items-center justify-center">
-            <Ionicons name="person" size={48} color="#6b7280" />
-          </View>
+          <TouchableOpacity
+            className="w-24 h-24 rounded-full items-center justify-center"
+            style={{ backgroundColor: cardBgColor }}
+            onPress={pickImage}
+          >
+            <Ionicons
+              name="cloud-upload-outline"
+              size={32}
+              color={iconColor}
+              className="absolute z-10 opacity-20"
+            />
+            <Image
+              // reflect the new image immediately after picking, or fallback to existing avatar or default image
+              source={{ uri: userProfile?.avatarUrl || image }}
+              style={{ width: 96, height: 96, borderRadius: 48 }}
+            />
+          </TouchableOpacity>
 
           {/* Verification Badge */}
           <View
@@ -36,11 +104,11 @@ export default function ProfileCard() {
         </View>
 
         <Text className="text-xl font-bold mb-1" style={{ color: textColor }}>
-          {currentUser?.displayName}
+          {userProfile?.name}
         </Text>
 
         <Text className="text-sm" style={{ color: iconColor }}>
-          {currentUser?.email}
+          {userProfile?.email}
         </Text>
       </View>
 
@@ -55,7 +123,7 @@ export default function ProfileCard() {
             className="text-3xl font-bold mb-1"
             style={{ color: tintColor }}
           >
-            1
+            {userProfile?.itemsFoundCount ?? 0}
           </Text>
           <Text className="text-xs font-semibold" style={{ color: iconColor }}>
             ITEMS FOUND
@@ -71,7 +139,7 @@ export default function ProfileCard() {
             className="text-3xl font-bold mb-1"
             style={{ color: tintColor }}
           >
-            2
+            {userProfile?.itemsReturnedCount ?? 0}
           </Text>
           <Text className="text-xs font-semibold" style={{ color: iconColor }}>
             ITEMS RETURNED

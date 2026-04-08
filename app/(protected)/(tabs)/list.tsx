@@ -1,8 +1,3 @@
-import { useLocalSearchParams } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
-
 import PostCard from "@/components/list/PostCard";
 import TabSelector from "@/components/list/TabSelector";
 import { useAuth } from "@/context/AuthContext";
@@ -10,6 +5,9 @@ import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useItemsActions } from "@/hooks/useItemsActions";
 import { timeAgo } from "@/hooks/useTime";
+import { StatusBar } from "expo-status-bar";
+import React, { useEffect, useState } from "react";
+import { ScrollView, Text, View } from "react-native";
 
 interface Post {
   id: string;
@@ -23,7 +21,6 @@ interface Post {
 }
 
 export default function MyPostsScreen() {
-  const params = useLocalSearchParams<{ returnTo?: string | string[] }>();
   const [selectedTab, setSelectedTab] = useState<"Active" | "Returned">(
     "Active",
   );
@@ -31,7 +28,7 @@ export default function MyPostsScreen() {
   const iconColor = useThemeColor({}, "icon");
   const colorScheme = useColorScheme();
   const { user } = useAuth();
-  const { getUserItems } = useItemsActions();
+  const { getUserItems, markAsReturned } = useItemsActions();
   const [userPosts, setUserPosts] = useState<Post[]>([]);
 
   useEffect(() => {
@@ -40,12 +37,25 @@ export default function MyPostsScreen() {
       const items = await getUserItems(user.uid);
       setUserPosts(items);
     };
-
     loadUserPosts();
-  }, []);
+  }, [user]);
+
+  const handleMarkAsReturned = async (postId: string, posterId: string) => {
+    await markAsReturned(postId, posterId);
+    // Update local state to reflect the change
+    setUserPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post.id === postId ? { ...post, status: "Returned" } : post,
+      ),
+    );
+  };
 
   // Filter posts based on selected tab
-  const filteredPosts = selectedTab === "Active" ? userPosts : [];
+  const filteredPosts = userPosts.filter((post) =>
+    selectedTab === "Active"
+      ? post.status === "Active"
+      : post.status === "Returned",
+  );
 
   return (
     <View className="flex-1" style={{ backgroundColor }}>
@@ -58,6 +68,7 @@ export default function MyPostsScreen() {
           <PostCard
             key={post.id}
             id={post.id}
+            posterId={post.posterId}
             title={post.name}
             status={post.status}
             photo={post.photos[0]}
@@ -67,6 +78,7 @@ export default function MyPostsScreen() {
             })}
             location={post.buildingName || "Unknown Location"}
             tabActive={selectedTab === "Active"}
+            onMarkAsReturned={handleMarkAsReturned}
           />
         ))}
 

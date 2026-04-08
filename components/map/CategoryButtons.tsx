@@ -13,6 +13,7 @@ const categories = [
   { name: "Electronics", icon: "phone-portrait-outline" },
   { name: "Clothing", icon: "shirt-outline" },
   { name: "Keys", icon: "key-outline" },
+  { name: "Other", icon: "ellipsis-horizontal-outline" },
 ] as const;
 
 export default function CategoryButtons({

@@ -1,3 +1,4 @@
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { useAuthActions } from "@/hooks/useAuthActions";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
@@ -11,6 +12,11 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const backgroundColor = useThemeColor({}, "background");
+  const iconColor = useThemeColor({}, "icon");
+  const textColor = useThemeColor({}, "text");
+  const buttonBackgroundColor = useThemeColor({}, "buttonBackground");
+  const borderColor = useThemeColor({}, "border");
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -30,45 +36,71 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView
+      className="flex-1 "
+      style={{ backgroundColor: backgroundColor }}
+    >
       <View className="flex-1 items-center justify-center">
-        <Text className="text-5xl mb-10 font-extrabold">Sign In</Text>
-        <View className="gap-4 border border-gray-300 rounded-md p-4 mt-4 w-3/4">
-          <Text>School Email</Text>
+        <Text
+          className="text-5xl mb-10 font-extrabold"
+          style={{ color: textColor }}
+        >
+          Sign In
+        </Text>
+        <View
+          className="gap-4 border rounded-md p-4 mt-4 w-3/4"
+          style={{ borderColor: borderColor }}
+        >
+          <Text style={{ color: textColor }}>School Email</Text>
           <TextInput
             keyboardType="email-address"
-            className="border border-gray-300 rounded-md p-2 mt-1"
+            className="border rounded-md p-2 mt-1"
             placeholder="example@csu.fullerton.edu"
-            placeholderTextColor={"#6c7781"}
+            placeholderTextColor={textColor}
             value={email}
             onChangeText={setEmail}
+            style={{ borderColor: borderColor, color: textColor }}
           />
-          <Text>Password</Text>
+          <Text style={{ color: textColor }}>Password</Text>
           <TextInput
             keyboardType="default"
             secureTextEntry={true}
-            className="border border-gray-300 rounded-md p-2 mt-1"
+            className="border rounded-md p-2 mt-1"
             placeholder="Enter your password"
-            placeholderTextColor={"#6c7781"}
+            placeholderTextColor={textColor}
             value={password}
             onChangeText={setPassword}
+            style={{ borderColor: borderColor, color: textColor }}
           />
           {error ? <Text className="text-red-500">{error}</Text> : null}
 
           <Pressable
-            className="bg-gray-800 py-3 rounded-md mt-6"
+            className=" py-3 rounded-md mt-6"
             onPress={handleLogin}
             disabled={loading}
+            style={{ backgroundColor: buttonBackgroundColor }}
           >
-            <Text className="text-center text-white text-lg font-semibold">
+            <Text
+              className="text-center  text-lg font-semibold"
+              style={{ color: textColor }}
+            >
               {loading ? "Signing In..." : "Sign In"}
             </Text>
           </Pressable>
+
           <View className="items-start">
-            <Link href="/account-recovery" className="text-sm underline mt-4">
+            <Link
+              href="/account-recovery"
+              className="text-sm underline mt-4"
+              style={{ color: textColor }}
+            >
               Forgot password?
             </Link>
-            <Link href="/register" className="text-sm underline mt-4">
+            <Link
+              href="/register"
+              className="text-sm underline mt-4"
+              style={{ color: textColor }}
+            >
               Don't have an account? Sign Up
             </Link>
           </View>
