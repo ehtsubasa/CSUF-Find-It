@@ -84,7 +84,6 @@ export function useNotifications(currentUser: any) {
     lastSeenAt,
     newItemsCount,
     claimedPostsCount,
-    hasNotifications: newItemsCount > 0 || claimedPostsCount > 0,
     markAllSeen,
   };
 }
