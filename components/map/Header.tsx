@@ -1,12 +1,17 @@
 import { useThemeColor } from "@/hooks/use-theme-color";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import React, { useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { Text, TextInput, View } from "react-native";
+import {
+  Menu,
+  MenuOption,
+  MenuOptions,
+  MenuTrigger,
+} from "react-native-popup-menu";
 
 interface HeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  hasNotifications: boolean;
   newItemsCount: number;
   claimedPostsCount: number;
   newMessagesCount: number;
@@ -16,34 +21,18 @@ interface HeaderProps {
 export default function Header({
   searchQuery,
   onSearchChange,
-  hasNotifications,
   newItemsCount,
   claimedPostsCount,
   newMessagesCount,
   onNotificationDismiss,
 }: HeaderProps) {
   const textColor = useThemeColor({}, "text");
-  const borderColor = useThemeColor({}, "border");
   const iconColor = useThemeColor({}, "icon");
   const backgroundColor = useThemeColor({}, "background");
   const buttonBackgroundColor = useThemeColor({}, "buttonBackground");
-  const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const handleBellPress = () => {
-    if (!dropdownVisible) {
-      setDropdownVisible(true);
-    } else {
-      setDropdownVisible(false);
-      onNotificationDismiss();
-    }
-  };
-
-  const handleDismiss = () => {
-    setDropdownVisible(false);
-    onNotificationDismiss();
-  };
-
-  const hasAny = hasNotifications || newMessagesCount > 0;
+  const hasAny =
+    newItemsCount > 0 || claimedPostsCount > 0 || newMessagesCount > 0;
 
   return (
     <View
@@ -70,77 +59,76 @@ export default function Header({
         </View>
 
         {/* Notification Bell */}
-        <TouchableOpacity className="relative" onPress={handleBellPress}>
-          <Ionicons name="notifications-outline" size={24} color={iconColor} />
-          {hasAny && (
-            <View className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500" />
-          )}
-        </TouchableOpacity>
-      </View>
+        <Menu>
+          <MenuTrigger>
+            <View className="relative">
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                color={iconColor}
+              />
+              {hasAny && (
+                <View className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-red-500" />
+              )}
+            </View>
+          </MenuTrigger>
 
-      {/* Notification Dropdown */}
-      {dropdownVisible && (
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={handleDismiss}
-          className="absolute top-20 right-4 z-50 rounded-xl overflow-hidden"
-          style={{
-            backgroundColor,
-            borderWidth: 1,
-            borderColor,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.15,
-            shadowRadius: 8,
-            elevation: 8,
-            minWidth: 240,
-          }}
-        >
-          {newMessagesCount > 0 && (
-            <View
-              className="flex-row items-center gap-3 px-4 py-3"
-              style={{ borderBottomWidth: 1, borderBottomColor: borderColor }}
-            >
-              <Ionicons name="chatbubble" size={16} color="#3b82f6" />
-              <Text style={{ color: textColor }}>
-                You have {newMessagesCount} new{" "}
-                {newMessagesCount === 1 ? "message" : "messages"}
-              </Text>
-            </View>
-          )}
-          {claimedPostsCount > 0 && (
-            <View
-              className="flex-row items-center gap-3 px-4 py-3"
-              style={{ borderBottomWidth: 1, borderBottomColor: borderColor }}
-            >
-              <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
-              <Text style={{ color: textColor }}>
-                {claimedPostsCount === 1
-                  ? "One of your items was claimed"
-                  : `${claimedPostsCount} of your items were claimed`}
-              </Text>
-            </View>
-          )}
-          {newItemsCount > 0 && (
-            <View className="flex-row items-center gap-3 px-4 py-3">
-              <Ionicons name="location" size={16} color="#f59e0b" />
-              <Text style={{ color: textColor }}>
-                {newItemsCount} new{" "}
-                {newItemsCount === 1 ? "item was" : "items were"} posted while
-                you were away
-              </Text>
-            </View>
-          )}
-          {!hasAny && (
-            <View
-              className="px-4 py-3"
-              style={{ borderWidth: 1, borderColor: "rgba(0,0,0,0.08)", borderRadius: 12 }}
-            >
-              <Text style={{ color: textColor }}>No new notifications</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-      )}
+          <MenuOptions
+            customStyles={{
+              optionsContainer: {
+                backgroundColor,
+                borderRadius: 12,
+                padding: 8,
+                width: 240,
+
+                marginTop: 25,
+              },
+            }}
+          >
+            {newMessagesCount > 0 && (
+              <MenuOption onSelect={onNotificationDismiss}>
+                <View className="flex-row items-center gap-3 px-2 py-2">
+                  <Ionicons name="chatbubble" size={16} color="#3b82f6" />
+                  <Text style={{ color: textColor }}>
+                    {newMessagesCount} new message
+                    {newMessagesCount > 1 ? "s" : ""}
+                  </Text>
+                </View>
+              </MenuOption>
+            )}
+
+            {claimedPostsCount > 0 && (
+              <MenuOption onSelect={onNotificationDismiss}>
+                <View className="flex-row items-center gap-3 px-2 py-2">
+                  <Ionicons name="checkmark-circle" size={16} color="#22c55e" />
+                  <Text style={{ color: textColor }}>
+                    {claimedPostsCount} item
+                    {claimedPostsCount > 1 ? "s were" : " was"} claimed
+                  </Text>
+                </View>
+              </MenuOption>
+            )}
+
+            {newItemsCount > 0 && (
+              <MenuOption onSelect={onNotificationDismiss}>
+                <View className="flex-row items-center gap-3 px-2 py-2">
+                  <Ionicons name="location" size={16} color="#f59e0b" />
+                  <Text style={{ color: textColor }}>
+                    {newItemsCount} new item
+                    {newItemsCount > 1 ? "s" : ""}
+                  </Text>
+                </View>
+              </MenuOption>
+            )}
+
+            {!hasAny && (
+              <MenuOption disabled>
+                <Text style={{ color: textColor }}>No new notifications</Text>
+              </MenuOption>
+            )}
+          </MenuOptions>
+        </Menu>
+      </View>
 
       {/* Search Bar */}
       <View
