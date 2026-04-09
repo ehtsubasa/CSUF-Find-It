@@ -160,7 +160,7 @@ export function useChat(
       const conversationRef = doc(db, "conversations", conversationId);
       const uploadedPhotoUrls = await uploadImage(
         imageUri || [],
-        posterId,
+        currentUser.uid,
         "conversations",
       );
       // ensure doc exists
