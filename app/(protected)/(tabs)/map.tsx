@@ -52,13 +52,8 @@ export default function CampusMapScreen() {
   const { userProfile } = useUserProfile(user?.uid);
   const { getAllItems, getBookmarkedItems } = useItemsActions();
   const { chatUsers } = useConversations(user);
-  const {
-    lastSeenAt,
-    newItemsCount,
-    claimedPostsCount,
-    hasNotifications,
-    markAllSeen,
-  } = useNotifications(user);
+  const { lastSeenAt, newItemsCount, claimedPostsCount, markAllSeen } =
+    useNotifications(user);
 
   const unreadMessagesCount = chatUsers.reduce(
     (total, u) => total + u.unreadCount,
@@ -94,7 +89,6 @@ export default function CampusMapScreen() {
       <Header
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        hasNotifications={hasNotifications}
         newItemsCount={newItemsCount}
         claimedPostsCount={claimedPostsCount}
         newMessagesCount={unreadMessagesCount}
