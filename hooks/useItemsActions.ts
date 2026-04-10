@@ -1,5 +1,7 @@
+import { CSUF_POLYGON_COORDINATES } from "@/constants/polygon";
 import { DEFAULT_AVATAR } from "@/constants/user";
 import { db, storage } from "@/firebaseConfig";
+import * as turf from "@turf/turf";
 import {
   addDoc,
   arrayRemove,
@@ -16,12 +18,19 @@ import {
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 
+const turfCoordinates = CSUF_POLYGON_COORDINATES.map((p) => [
+  p.longitude,
+  p.latitude,
+]);
+
+const turfPolygon = turf.polygon([turfCoordinates]);
+
 const normalizeStatus = (status?: string) => {
   const normalized = (status ?? "Active").trim().toLowerCase();
   return normalized === "active" ? "Active" : "Returned";
 };
 
-const mapReportedItem = (doc: any) => {
+export const mapReportedItem = (doc: any) => {
   const data = doc.data();
   const status = normalizeStatus(data.status);
 
@@ -55,6 +64,14 @@ export function useItemsActions() {
     buildingName: string,
   ) => {
     try {
+      // validate that the location is within the campus polygon before allowing post submission
+      const point = turf.point([lng, lat]);
+      const isInsidePolygon = turf.booleanPointInPolygon(point, turfPolygon);
+
+      if (!isInsidePolygon) {
+        throw new Error("You must be on campus to post.");
+      }
+
       if (!imgUrl || imgUrl.length === 0) {
         throw new Error("No image URIs provided");
       }
@@ -83,7 +100,6 @@ export function useItemsActions() {
         itemsFoundCount: increment(1),
       });
     } catch (e) {
-      console.error("Error adding document: ", e);
       throw e;
     }
   };
@@ -159,7 +175,6 @@ export function useItemsActions() {
       await deleteDoc(docRef);
       await updateDoc(doc(db, "users", posterId), {
         itemsFoundCount: increment(-1),
-        itemsActiveCount: increment(-1),
       });
     } catch (e) {
       console.error("Error deleting document: ", e);
@@ -258,5 +273,6 @@ export function useItemsActions() {
     toggleBookmark,
     getBookmarkedItems,
     uploadImage,
+    mapReportedItem,
   };
 }

@@ -1,7 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 
 import ItemDetailsForm from "@/components/report-items/ItemDetailsForm";
 import LocationSection from "@/components/report-items/LocationSection";
@@ -119,21 +124,27 @@ export default function ReportItemScreen() {
       alert("Please enter an item name");
       return;
     }
-
-    await submitItem(
-      userLocation.latitude,
-      userLocation.longitude,
-      localPhotos,
-      user?.uid || "Unknown User",
-      userProfile?.name || "Unknown User",
-      userProfile?.avatarUrl || DEFAULT_AVATAR,
-      itemName.trim(),
-      description,
-      selectedCategory,
-      buildingName || "Unknown Location",
-    );
-
-    alert("Item reported successfully!");
+    try {
+      await submitItem(
+        userLocation.latitude,
+        userLocation.longitude,
+        localPhotos,
+        user?.uid || "Unknown User",
+        userProfile?.name || "Unknown User",
+        userProfile?.avatarUrl || DEFAULT_AVATAR,
+        itemName.trim(),
+        description,
+        selectedCategory,
+        buildingName || "Unknown Location",
+      );
+      Alert.alert(
+        "Item reported successfully!",
+        "Your item has been posted on the map.",
+      );
+    } catch (e: any) {
+      Alert.alert("Error", e?.message || "Something went wrong");
+      return;
+    }
     router.push("/(protected)/(tabs)/map");
   };
 

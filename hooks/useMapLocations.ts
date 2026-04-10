@@ -51,23 +51,24 @@ export function useMapLocation() {
     }
   };
 
+  // NEED TO TEST THIS FUNCTION AGAINST THE GOOGLE MAPS API TO MAKE SURE IT WORKS PROPERLY
   const getBuildingName = async (lat: number, lng: number) => {
     const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_KEY}`;
 
     const res = await fetch(url);
     const data = await res.json();
-
+    console.log("Geocoding API response TESTTTTT:", data);
     if (!data.results) return null;
 
-    const result = data.results.find(
+    const preferred = data.results.find(
       (r: any) =>
-        r.types.includes("premise") ||
         r.types.includes("establishment") ||
-        r.types.includes("point_of_interest"),
+        r.types.includes("point_of_interest") ||
+        r.types.includes("premise"),
     );
 
-    if (result) return result.formatted_address;
-    if (result.types.includes("plus_code")) return null;
+    if (preferred) return preferred.formatted_address;
+    if (preferred.types.includes("plus_code")) return null;
 
     // fallback
     return data.results[0]?.formatted_address || null;
