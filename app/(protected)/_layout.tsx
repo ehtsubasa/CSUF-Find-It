@@ -113,6 +113,10 @@ export default function ProtectedLayout() {
         name="saved-items"
         options={{ title: "Saved Items", headerShown: true }}
       />
+      <Stack.Screen
+        name="notification-settings"
+        options={{ title: "Notification Settings", headerShown: true }}
+      />
     </Stack>
   );
 }

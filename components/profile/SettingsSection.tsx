@@ -2,10 +2,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
 import { Pressable, Text, TouchableOpacity, View } from "react-native";
 
 export default function SettingsSection({ userProfile }: { userProfile: any }) {
+  const router = useRouter();
   const textColor = useThemeColor({}, "text");
   const iconColor = useThemeColor({}, "icon");
   const colorScheme = useColorScheme() ?? "light";
@@ -30,7 +32,10 @@ export default function SettingsSection({ userProfile }: { userProfile: any }) {
         className="flex-row items-center justify-between py-4 px-4 mb-2 rounded-xl"
         style={{ backgroundColor: colorScheme === "dark" ? "#1a1a1a" : "#fff" }}
       >
-        <View className="flex-row items-center">
+        <TouchableOpacity
+          className="flex-row items-center"
+          onPress={() => router.push("/notification-settings")}
+        >
           <View
             className="w-10 h-10 rounded-full items-center justify-center mr-3"
             style={{
@@ -46,7 +51,7 @@ export default function SettingsSection({ userProfile }: { userProfile: any }) {
           <Text className="text-base" style={{ color: textColor }}>
             Notification Settings
           </Text>
-        </View>
+        </TouchableOpacity>
         <Ionicons name="chevron-forward" size={20} color={iconColor} />
       </TouchableOpacity>
 
