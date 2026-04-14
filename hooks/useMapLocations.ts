@@ -51,24 +51,47 @@ export function useMapLocation() {
     }
   };
 
-  // NEED TO TEST THIS FUNCTION AGAINST THE GOOGLE MAPS API TO MAKE SURE IT WORKS PROPERLY
+  const BAD_KEYWORDS = ["department", "office", "program", "division", "unit"];
+
   const getBuildingName = async (lat: number, lng: number) => {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${process.env.EXPO_PUBLIC_GOOGLE_MAPS_KEY}`;
-
-    const res = await fetch(url);
-    const data = await res.json();
-    console.log("Geocoding API response TESTTTTT:", data);
-    if (!data.results) return null;
-
-    const preferred = data.results.find(
-      (r: any) =>
-        r.types.includes("establishment") ||
-        r.types.includes("point_of_interest") ||
-        r.types.includes("premise"),
+    const res = await fetch(
+      "https://places.googleapis.com/v1/places:searchNearby",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Goog-Api-Key": process.env.EXPO_PUBLIC_GOOGLE_MAPS_KEY || "",
+          "X-Goog-FieldMask":
+            "places.displayName,places.types,places.primaryType",
+        },
+        body: JSON.stringify({
+          locationRestriction: {
+            circle: {
+              center: {
+                latitude: lat,
+                longitude: lng,
+              },
+              radius: 50,
+            },
+          },
+        }),
+      },
     );
 
-    if (preferred) return preferred.formatted_address;
-    if (preferred.types.includes("plus_code")) return null;
+    const data = await res.json();
+
+    if (!data.places || data.places.length === 0) return "Unknown Location";
+
+    const filtered = data.places.filter((place: any) => {
+      const name = place.displayName?.text?.toLowerCase() || "";
+
+      // return false if it doesn't contain any of the good types
+      return !BAD_KEYWORDS.some((word) => name.includes(word));
+    });
+
+    if (filtered.length > 0) {
+      return filtered[0].displayName?.text;
+    }
 
     // fallback
     return data.results[0]?.formatted_address || null;
