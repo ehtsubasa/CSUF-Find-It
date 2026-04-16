@@ -9,6 +9,7 @@ import {
   sendEmailVerification,
   signInWithEmailAndPassword,
   updateProfile,
+  sendPasswordResetEmail
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { Alert } from "react-native";
@@ -61,23 +62,31 @@ export function useAuthActions() {
     }
   };
 
-  const resendVerification = async () => {
+  const resetPassword = async (email: string) => {
     try {
-      if (auth.currentUser) {
-        await sendEmailVerification(auth.currentUser);
-        Alert.alert(
-          "Email Sent",
-          "A new verification link has been sent to your email.",
-        );
-      }
+      await sendPasswordResetEmail(auth, email);
+      Alert.alert(
+        "Email Sent",
+        "A password reset link has been sent to your email.",
+      );
     } catch (error) {
-      console.error("Error resending verification:", error);
+      console.error("Error resetting password:", error);
       Alert.alert(
         "Error",
-        "Failed to resend verification email. Please try again later.",
+        "Failed to send password reset email. Please try again later.",
       );
     }
   };
 
-  return { login, register, resendVerification };
+  const resendVerification = async () => {
+    try {
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+      }
+    } catch (error) {
+      console.error("Error resending verification:", error);
+    }
+  };
+
+  return { login, register, resendVerification, resetPassword };
 }

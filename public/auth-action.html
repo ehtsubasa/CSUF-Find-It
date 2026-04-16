@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account Action</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 480px;
+        margin: 60px auto;
+        padding: 24px;
+        line-height: 1.5;
+      }
+      button {
+        padding: 12px 16px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 12px;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        margin-top: 12px;
+        box-sizing: border-box;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="title">Processing...</h1>
+    <p id="status">Checking your link...</p>
+
+    <button id="confirmBtn" class="hidden"></button>
+
+    <div id="passwordSection" class="hidden">
+      <input
+        type="password"
+        id="newPassword"
+        placeholder="Enter new password"
+      />
+      <button id="resetBtn">Reset Password</button>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+      import {
+        getAuth,
+        checkActionCode,
+        applyActionCode,
+        verifyPasswordResetCode,
+        confirmPasswordReset,
+      } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+
+      const firebaseConfig = await fetch('/__/firebase/init.json').then((r) =>
+        r.json(),
+      );
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode');
+      const oobCode = params.get('oobCode');
+
+      const titleEl = document.getElementById('title');
+      const statusEl = document.getElementById('status');
+      const confirmBtn = document.getElementById('confirmBtn');
+      const passwordSection = document.getElementById('passwordSection');
+      const resetBtn = document.getElementById('resetBtn');
+      const newPasswordInput = document.getElementById('newPassword');
+
+      async function init() {
+        if (!mode || !oobCode) {
+          titleEl.textContent = 'Invalid Link';
+          statusEl.textContent = 'Missing or invalid parameters.';
+          return;
+        }
+
+        switch (mode) {
+          case 'verifyEmail':
+            titleEl.textContent = 'Verify your email';
+
+            try {
+              await checkActionCode(auth, oobCode);
+              statusEl.textContent =
+                'Your link is valid. Click below to verify your email.';
+              confirmBtn.textContent = 'Confirm Email Verification';
+              confirmBtn.classList.remove('hidden');
+            } catch {
+              statusEl.textContent =
+                'This verification link is invalid, expired, or already used.';
+            }
+            break;
+
+          case 'resetPassword':
+            titleEl.textContent = 'Reset your password';
+
+            try {
+              const email = await verifyPasswordResetCode(auth, oobCode);
+              statusEl.textContent = `Reset password for ${email}`;
+              passwordSection.classList.remove('hidden');
+            } catch {
+              statusEl.textContent =
+                'This password reset link is invalid or expired.';
+            }
+            break;
+
+          default:
+            titleEl.textContent = 'Unknown Action';
+            statusEl.textContent = 'This link is not supported.';
+        }
+      }
+
+      confirmBtn.addEventListener('click', async () => {
+        confirmBtn.disabled = true;
+        statusEl.textContent = 'Verifying your email...';
+
+        try {
+          await applyActionCode(auth, oobCode);
+          statusEl.textContent =
+            'Email verified successfully. You can return to the app.';
+          confirmBtn.remove();
+        } catch {
+          statusEl.textContent =
+            'Verification failed. The link may have expired or already been used.';
+          confirmBtn.disabled = false;
+        }
+      });
+
+      resetBtn.addEventListener('click', async () => {
+        const newPassword = newPasswordInput.value;
+
+        if (!newPassword || newPassword.length < 6) {
+          statusEl.textContent =
+            'Password must be at least 6 characters long.';
+          return;
+        }
+
+        resetBtn.disabled = true;
+        statusEl.textContent = 'Resetting password...';
+
+        try {
+          await confirmPasswordReset(auth, oobCode, newPassword);
+          statusEl.textContent =
+            'Password reset successful. You can return to the app.';
+          passwordSection.remove();
+        } catch {
+          statusEl.textContent =
+            'Failed to reset password. The link may have expired.';
+          resetBtn.disabled = false;
+        }
+      });
+
+      init();
+    </script>
+  </body>
+</html>
