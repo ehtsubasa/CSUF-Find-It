@@ -1,11 +1,13 @@
 import PostCard from "@/components/list/PostCard";
 import TabSelector from "@/components/list/TabSelector";
 import { useAuth } from "@/context/AuthContext";
+import { db } from "@/firebaseConfig";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useItemsActions } from "@/hooks/useItemsActions";
 import { timeAgo } from "@/hooks/useTime";
 import { StatusBar } from "expo-status-bar";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 
@@ -28,16 +30,24 @@ export default function MyPostsScreen() {
   const iconColor = useThemeColor({}, "icon");
   const colorScheme = useColorScheme();
   const { user } = useAuth();
-  const { getUserItems, markAsReturned } = useItemsActions();
+  const { mapReportedItem, markAsReturned } = useItemsActions();
   const [userPosts, setUserPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     if (!user) return;
-    const loadUserPosts = async () => {
-      const items = await getUserItems(user.uid);
+    const q = query(
+      collection(db, "reportedItems"),
+      where("posterId", "==", user.uid),
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(mapReportedItem);
       setUserPosts(items);
+    });
+
+    return () => {
+      unsubscribe();
     };
-    loadUserPosts();
   }, [user]);
 
   const handleMarkAsReturned = async (postId: string, posterId: string) => {

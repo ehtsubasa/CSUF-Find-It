@@ -49,11 +49,6 @@ export default function ActivitySection({ userProfile }: { userProfile: any }) {
         </View>
 
         <View className="flex-row items-center gap-2">
-          <View className="bg-blue-500 px-3 py-1 rounded-full">
-            <Text className="text-white text-xs font-semibold">
-              {userProfile?.itemsActiveCount ?? 0} active
-            </Text>
-          </View>
           <Ionicons name="chevron-forward" size={20} color={iconColor} />
         </View>
       </TouchableOpacity>

@@ -22,7 +22,7 @@ export default function MapControl({
         style={{ backgroundColor: buttonBackground }}
         onPress={onInititalLocation}
       >
-        <Ionicons name="home" size={24} color={iconColor} />
+        <Ionicons name="school" size={24} color={iconColor} />
       </TouchableOpacity>
       <TouchableOpacity
         activeOpacity={0.8}

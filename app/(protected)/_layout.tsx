@@ -32,6 +32,8 @@ export default function ProtectedLayout() {
         name="chat/[id]"
         options={{
           title: "",
+          headerBackButtonDisplayMode: "minimal",
+          headerTitleAlign: "left",
           headerShown: true,
           headerTitle: () => (
             <View className="flex-row items-center gap-2">

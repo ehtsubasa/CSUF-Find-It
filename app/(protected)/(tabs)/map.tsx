@@ -3,19 +3,22 @@ import Header from "@/components/map/Header";
 import ItemBottomSheet from "@/components/map/ItemBottomSheet";
 import MapControls from "@/components/map/MapControl";
 import RecentlyFoundItems from "@/components/map/RecentlyFoundItems";
+import { CSUF_POLYGON_COORDINATES } from "@/constants/polygon";
 import { useAuth } from "@/context/AuthContext";
+import { db } from "@/firebaseConfig";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { useConversations } from "@/hooks/useConversations";
-import { useItemsActions } from "@/hooks/useItemsActions";
+import { mapReportedItem, useItemsActions } from "@/hooks/useItemsActions";
 import { useMapLocation } from "@/hooks/useMapLocations";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View } from "react-native";
-import MapView, { Marker } from "react-native-maps";
+import { Alert, Linking, View } from "react-native";
+import MapView, { Marker, Polygon } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface LostItem {
@@ -32,7 +35,7 @@ interface LostItem {
 }
 
 export default function CampusMapScreen() {
-  const { mapRef, handleUserLocation, handleInitialLocation } =
+  const { mapRef, handleUserLocation, handleInitialLocation, location } =
     useMapLocation();
   const router = useRouter();
   const inset = useSafeAreaInsets();
@@ -50,7 +53,7 @@ export default function CampusMapScreen() {
   };
   const { user } = useAuth();
   const { userProfile } = useUserProfile(user?.uid);
-  const { getAllItems, getBookmarkedItems } = useItemsActions();
+  const { getAllItems } = useItemsActions();
   const { chatUsers } = useConversations(user);
   const { lastSeenAt, newItemsCount, claimedPostsCount, markAllSeen } =
     useNotifications(user);
@@ -66,8 +69,44 @@ export default function CampusMapScreen() {
       : lostItems.filter((item) => item.category === selectedCategory);
 
   useEffect(() => {
-    Location.requestForegroundPermissionsAsync();
-    getAllItems().then(setLostItems);
+    const setupLocation = async () => {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== "granted") {
+        const res = await Location.requestForegroundPermissionsAsync();
+        if (res.status !== "granted") {
+          Alert.alert(
+            "Permission Denied",
+            "Location permission is required to use the map.",
+            [
+              {
+                text: "Cancel",
+                style: "cancel",
+              },
+              {
+                text: "Open Settings",
+                onPress: () => {
+                  Linking.openSettings();
+                },
+              },
+            ],
+          );
+          return;
+        }
+      }
+    };
+    setupLocation();
+
+    const q = query(
+      collection(db, "reportedItems"),
+      where("status", "==", "Active"),
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const items = snapshot.docs.map(mapReportedItem);
+      setLostItems(items);
+    });
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const renderBackdrop = useCallback(
@@ -126,6 +165,12 @@ export default function CampusMapScreen() {
               }}
             />
           ))}
+          <Polygon
+            coordinates={CSUF_POLYGON_COORDINATES}
+            fillColor="rgba(202, 202, 202, 0.11)"
+            strokeColor="rgba(255, 0, 0, 0.8)"
+            strokeWidth={2}
+          />
         </MapView>
 
         <RecentlyFoundItems
