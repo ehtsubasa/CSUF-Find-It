@@ -15,7 +15,10 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 4. Deploy the webpages for email verification and password reset. Follow the firebase docs: https://firebase.google.com/docs/hosting/quickstart
 
-5. Start the app
+5. Change the email template in Authentication section by setting up a custom action URL in form of:
+`link-to-your-deployed-webpage/auth-action.html`
+
+6. Start the app
 
    ```bash
    npx expo start
